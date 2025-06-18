@@ -4,6 +4,9 @@ import 'package:finsplore/model/pager.dart';
 import 'package:finsplore/model/result.dart';
 import 'package:finsplore/net/http_api.dart';
 
+// Type alias for converter function
+typedef Converter<T> = T Function(Map<String, dynamic>);
+
 /// Base API class for CRUD operations on models of type M.
 /// It uses HttpApi for actual HTTP interactions and provides
 /// standard endpoints based on naming conventions.
@@ -24,11 +27,11 @@ class BaseApi<M extends Model<M>> {
   }
 
   // Generic get method to fetch a endpoint
-  Future<r> get({Map<String, dynamic>? queryParams}) =>
+  Future<Result<Map<String, dynamic>>> get({Map<String, dynamic>? queryParams}) =>
       api.get(prefix, query: queryParams, useAuth: useAuth);
 
   /// Retrieve a single item by its primary ID.
-  Future<r> selectById(String id) =>
+  Future<Result<Map<String, dynamic>>> selectById(String id) =>
       api.get("$prefix/$id", useAuth: useAuth);
 
   /// Retrieve a complete list of items under this module.
@@ -47,15 +50,15 @@ class BaseApi<M extends Model<M>> {
   }
 
   /// Create a new model entry by sending a POST request.
-  Future<r> create(M model) =>
+  Future<Result<Map<String, dynamic>>> create(M model) =>
       api.post(prefix, data: model, useAuth: useAuth);
 
-  Future<r> put(M model) {
+  Future<Result<Map<String, dynamic>>> put(M model) {
     return api.put(prefix, data: model, useAuth: useAuth);
   }
 
   /// Update an existing model by ID using PUT request.
-  Future<r> updateById(M model) =>
+  Future<Result<Map<String, dynamic>>> updateById(M model) =>
       api.put(prefix, data: model, useAuth: useAuth);
 
   /// Delete a model entry by its ID.

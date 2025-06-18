@@ -2,9 +2,9 @@ import 'package:finsplore/ui/common/colors_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:stacked/stacked.dart';
-import '../../widgets/add_new/add_new_item_button.dart';
-import '../../buttons/floating_chatbot_button.dart';
-import '../../widgets/common/nav_bar/nav_bar.dart';
+// import '../../widgets/add_new/add_new_item_button.dart';
+// import '../../buttons/floating_chatbot_button.dart';
+// import '../../widgets/common/nav_bar/nav_bar.dart';
 import 'main_screen_viewmodel.dart';
 
 // Tabs
@@ -113,7 +113,8 @@ class MainScreenView extends StackedView<MainScreenViewModel> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label, MainScreenViewModel viewModel) {
+  Widget _buildNavItem(
+      int index, IconData icon, String label, MainScreenViewModel viewModel) {
     bool isSelected = viewModel.currentIndex == index;
     return GestureDetector(
       onTap: () => viewModel.setIndex(index),
@@ -122,12 +123,16 @@ class MainScreenView extends StackedView<MainScreenViewModel> {
         children: [
           Icon(
             icon,
-            color: isSelected ? AppThemeCombos.aqua : AppThemeCombos.softWhite.withOpacity(0.6),
+            color: isSelected
+                ? AppThemeCombos.aqua
+                : AppThemeCombos.softWhite.withOpacity(0.6),
           ),
           Text(
             label,
             style: TextStyle(
-              color: isSelected ? AppThemeCombos.aqua : AppThemeCombos.softWhite.withOpacity(0.6),
+              color: isSelected
+                  ? AppThemeCombos.aqua
+                  : AppThemeCombos.softWhite.withOpacity(0.6),
               fontSize: 12,
             ),
           ),

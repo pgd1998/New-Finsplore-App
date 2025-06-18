@@ -1,3 +1,4 @@
+// FIXED SIGNUP VIEWMODEL
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:finsplore/app/app.locator.dart';
@@ -21,32 +22,61 @@ class SignupViewModel extends BaseViewModel {
     notifyListeners();
   }
 
-  Future<void> signUp() async {
+  Future<bool> signUp() async {
     setBusy(true);
-    
+
     try {
+      print('Starting signup process...');
+      print('Email: ${emailController.text}');
+      print('First Name: ${firstNameController.text}');
+      print('Last Name: ${lastNameController.text}');
+
       bool success = await _authService.signUp(
-        emailController.text,
+        emailController.text.trim(),
         passwordController.text,
-        firstNameController.text,
-        lastNameController.text,
+        firstNameController.text.trim(),
+        lastNameController.text.trim(),
       );
-      
+
+      print('Signup result: $success');
+
       if (success) {
+        print('Signup successful, navigating to main screen...');
+        // Clear the form
+        _clearForm();
+        // Navigate to main screen
         _navigationService.replaceWithMainScreenView();
+        setBusy(false);
+        return true;
       } else {
-        // Show error message
-        // TODO: Add error handling
+        print('Signup failed');
+        setBusy(false);
+        return false;
       }
     } catch (e) {
-      // Handle error
       print('Sign up error: $e');
+      setBusy(false);
+      return false;
     }
-    
-    setBusy(false);
+  }
+
+  void _clearForm() {
+    firstNameController.clear();
+    lastNameController.clear();
+    emailController.clear();
+    passwordController.clear();
   }
 
   void navigateToSignIn() {
     _navigationService.replaceWithSigninView();
+  }
+
+  @override
+  void dispose() {
+    firstNameController.dispose();
+    lastNameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 }

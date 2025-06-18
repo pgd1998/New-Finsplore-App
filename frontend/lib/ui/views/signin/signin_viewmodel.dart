@@ -1,3 +1,4 @@
+// FIXED SIGNIN VIEWMODEL
 import 'package:flutter/material.dart';
 import 'package:finsplore/app/app.locator.dart';
 import 'package:finsplore/app/app.router.dart';
@@ -9,7 +10,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SigninViewModel extends BaseViewModel {
   final _secureStorage = FlutterSecureStorage();
-
   final _authService = locator<AuthenticationService>();
   final _navService = locator<NavigationService>();
 
@@ -30,22 +30,48 @@ class SigninViewModel extends BaseViewModel {
   Future<bool> signIn() async {
     setBusy(true);
     try {
+      print('Starting signin process...');
+      print('Email: ${emailController.text}');
+
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('stayLoggedIn', _rememberMe);
+
       bool success = await _authService.signIn(
-          emailController.text, passwordController.text);
-      setBusy(false);
-      return success;
+        emailController.text.trim(),
+        passwordController.text,
+      );
+
+      print('Signin result: $success');
+
+      if (success) {
+        print('Signin successful, navigating to main screen...');
+        // Clear the form
+        _clearForm();
+        // Navigate to main screen
+        _navService.replaceWithMainScreenView();
+        setBusy(false);
+        return true;
+      } else {
+        print('Signin failed');
+        setBusy(false);
+        return false;
+      }
     } catch (e) {
+      print('Sign in error: $e');
       setBusy(false);
       return false;
     }
   }
 
+  void _clearForm() {
+    emailController.clear();
+    passwordController.clear();
+  }
+
   // check if the user has already connected via shared preferences
   Future<bool> isUserConnected() async {
     _prefs ??= await SharedPreferences.getInstance();
-    return _prefs!.getBool('stayLoggedIn') ?? false; // default to false
+    return _prefs!.getBool('stayLoggedIn') ?? false;
   }
 
   void navigateToForgotPassword() {
@@ -57,13 +83,11 @@ class SigninViewModel extends BaseViewModel {
   }
 
   void navigateToSignUp() {
-    // Navigate to sign up page if implemented
     _navService.navigateTo(Routes.signupView);
   }
 
   void navigateToLandingPage() {
-    // Navigate to landing page if implemented
-    _navService.replaceWithSignupBasiqAuthLandingView();
+    _navService.replaceWith(Routes.startupView);
   }
 
   void togglePasswordVisibility() {
@@ -73,7 +97,7 @@ class SigninViewModel extends BaseViewModel {
 
   Future<bool> _getStayLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('stayLoggedIn') ?? false; // default to false
+    return prefs.getBool('stayLoggedIn') ?? false;
   }
 
   Future<bool> _isJwtTokenValid() async {
@@ -85,7 +109,7 @@ class SigninViewModel extends BaseViewModel {
     final bool stayLoggedIn = await _getStayLoggedIn();
 
     if (!stayLoggedIn) {
-      await _secureStorage.deleteAll(); // wipe tokens for security
+      await _secureStorage.deleteAll();
       return;
     }
 
@@ -94,5 +118,12 @@ class SigninViewModel extends BaseViewModel {
     if (loggedIn) {
       navigateToMainScreen();
     }
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 }

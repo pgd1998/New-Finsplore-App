@@ -49,7 +49,7 @@ class AuthenticationService with ListenableServiceMixin {
     try {
       // Call the updated login API
       final response = await _accountLoginApi.login(email, password);
-      
+
       if (response != null && response['token'] != null) {
         // Store authentication data from new backend format
         await _storeAuthData(
@@ -59,12 +59,12 @@ class AuthenticationService with ListenableServiceMixin {
           lastName: response['lastName'],
           token: response['token'],
         );
-        
+
         _isSignedIn = true;
         notifyListeners();
         return true;
       }
-      
+
       return false;
     } catch (e) {
       print('Sign in error: $e');
@@ -72,15 +72,22 @@ class AuthenticationService with ListenableServiceMixin {
     }
   }
 
-  Future<bool> signUp(String email, String password, String firstName, String lastName) async {
+  Future<bool> signUp(
+      String email, String password, String firstName, String lastName) async {
     try {
-      final res = await _accountRegisterApi.register(email, password, firstName, lastName);
-      
+      // ✅ Correct - using named parameters
+      final res = await _accountRegisterApi.register(
+        email: email,
+        password: password,
+        firstName: firstName,
+        lastName: lastName,
+      );
+
       // If registration successful, automatically sign in
       if (res) {
         return await signIn(email, password);
       }
-      
+
       return false;
     } catch (e) {
       print('Sign up error: $e');
@@ -95,10 +102,10 @@ class AuthenticationService with ListenableServiceMixin {
     _firstName = null;
     _lastName = null;
     _token = null;
-    
+
     // Clear secure storage
     await _secureStorage.deleteAll();
-    
+
     notifyListeners();
   }
 
@@ -118,10 +125,13 @@ class AuthenticationService with ListenableServiceMixin {
 
     // Store in secure storage
     await _secureStorage.write(key: _keyIsSignedIn, value: 'true');
-    if (userId != null) await _secureStorage.write(key: _keyUserId, value: userId);
+    if (userId != null)
+      await _secureStorage.write(key: _keyUserId, value: userId);
     if (email != null) await _secureStorage.write(key: _keyEmail, value: email);
-    if (firstName != null) await _secureStorage.write(key: _keyFirstName, value: firstName);
-    if (lastName != null) await _secureStorage.write(key: _keyLastName, value: lastName);
+    if (firstName != null)
+      await _secureStorage.write(key: _keyFirstName, value: firstName);
+    if (lastName != null)
+      await _secureStorage.write(key: _keyLastName, value: lastName);
     if (token != null) await _secureStorage.write(key: _keyToken, value: token);
   }
 

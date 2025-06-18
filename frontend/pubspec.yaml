@@ -47,14 +47,16 @@ flutter:
     - assets/images/
     - .env
 
-  fonts:
-  - family: ProximaNova
-    fonts:
-      - asset: assets/fonts/proximanova_regular.ttf
-      - asset: assets/fonts/proximanova_bold.otf
-        weight: 700
+  # Commented out until actual font files are available
+  # fonts:
+  # - family: ProximaNova
+  #   fonts:
+  #     - asset: assets/fonts/proximanova_regular.ttf
+  #     - asset: assets/fonts/proximanova_bold.otf
+  #       weight: 700
 
-flutter_icons:
-  android: true
-  ios: true
-  image_path: "assets/icon/app_icon.png"
+# Commented out until actual icon is available
+# flutter_icons:
+#   android: true
+#   ios: true
+#   image_path: "assets/icon/app_icon.png"
