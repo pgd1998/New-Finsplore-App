@@ -21,27 +21,36 @@ class AccountLoginApi extends BaseApi<Account> {
 
     return super.create(loginData).then((result) {
       if (result.success && result.data != null) {
-        // Extract data from the response
-        // The backend returns: {"userId": ..., "email": ..., "token": "...", "firstName": ..., "lastName": ...}
+        // The backend returns: {"code": 0, "message": "...", "data": {...}}
+        // So we need to access the nested 'data' field
         final responseData = result.data as Map<String, dynamic>;
-        final String token = responseData['token'] ?? '';
 
-        if (token.isNotEmpty) {
-          // Store JWT token securely
-          _secureStorage.write(key: 'jwt_token', value: token);
+        // Check if the response has the expected structure
+        if (responseData['code'] == 0 && responseData['data'] != null) {
+          final userData = responseData['data'] as Map<String, dynamic>;
+          final String token = userData['token'] ?? '';
 
-          // Store additional user info if needed
-          _secureStorage.write(
-              key: 'user_email', value: responseData['email'] ?? '');
-          _secureStorage.write(
-              key: 'user_id', value: responseData['userId']?.toString() ?? '');
-          _secureStorage.write(
-              key: 'user_first_name', value: responseData['firstName'] ?? '');
-          _secureStorage.write(
-              key: 'user_last_name', value: responseData['lastName'] ?? '');
+          if (token.isNotEmpty) {
+            // Store JWT token securely
+            _secureStorage.write(key: 'jwt_token', value: token);
 
-          // Return the complete response data for use in AuthenticationService
-          return responseData;
+            // Store additional user info if needed
+            _secureStorage.write(
+                key: 'user_email', value: userData['email'] ?? '');
+            _secureStorage.write(
+                key: 'user_id', value: userData['userId']?.toString() ?? '');
+            _secureStorage.write(
+                key: 'user_first_name', value: userData['firstName'] ?? '');
+            _secureStorage.write(
+                key: 'user_last_name', value: userData['lastName'] ?? '');
+            _secureStorage.write(
+                key: 'user_display_name', value: userData['displayName'] ?? '');
+            _secureStorage.write(
+                key: 'user_full_name', value: userData['fullName'] ?? '');
+
+            // Return the user data (not the wrapper)
+            return userData;
+          }
         }
       }
 
@@ -77,6 +86,8 @@ class AccountLoginApi extends BaseApi<Account> {
       'userId': await _secureStorage.read(key: 'user_id'),
       'firstName': await _secureStorage.read(key: 'user_first_name'),
       'lastName': await _secureStorage.read(key: 'user_last_name'),
+      'displayName': await _secureStorage.read(key: 'user_display_name'),
+      'fullName': await _secureStorage.read(key: 'user_full_name'),
     };
   }
 
