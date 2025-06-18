@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'base_api.dart';
+import 'simple_api_base.dart';
 
-class BillAPI extends BaseAPI {
+class BillAPI extends SimpleApiBase {
   static const String _billsEndpoint = '/api/bills';
 
   /// Creates a new bill
@@ -48,7 +48,8 @@ class BillAPI extends BaseAPI {
 
   Exception _handleError(dynamic error) {
     if (error is DioException) {
-      return Exception('Bill API Error: ${error.response?.data?['message'] ?? error.message}');
+      return Exception(
+          'Bill API Error: ${error.response?.data?['message'] ?? error.message}');
     }
     return Exception('Unexpected error: $error');
   }

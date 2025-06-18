@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'base_api.dart';
+import 'simple_api_base.dart';
 
-class SuggestionAPI extends BaseAPI {
+class SuggestionAPI extends SimpleApiBase {
   static const String _suggestionsEndpoint = '/api/suggestions';
 
   /// Creates a new financial suggestion
@@ -46,7 +46,8 @@ class SuggestionAPI extends BaseAPI {
 
   Exception _handleError(dynamic error) {
     if (error is DioException) {
-      return Exception('Suggestion API Error: ${error.response?.data?['message'] ?? error.message}');
+      return Exception(
+          'Suggestion API Error: ${error.response?.data?['message'] ?? error.message}');
     }
     return Exception('Unexpected error: $error');
   }

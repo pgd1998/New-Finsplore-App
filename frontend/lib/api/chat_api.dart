@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'base_api.dart';
+import 'simple_api_base.dart';
 
-class ChatAPI extends BaseAPI {
+class ChatAPI extends SimpleApiBase {
   static const String _chatEndpoint = '/api/chat';
 
   /// Sends a general chat message to AI assistant
@@ -63,7 +63,8 @@ class ChatAPI extends BaseAPI {
 
   Exception _handleError(dynamic error) {
     if (error is DioException) {
-      return Exception('Chat API Error: ${error.response?.data?['message'] ?? error.message}');
+      return Exception(
+          'Chat API Error: ${error.response?.data?['message'] ?? error.message}');
     }
     return Exception('Unexpected error: $error');
   }

@@ -20,7 +20,8 @@ class BudgetViewModel extends BaseViewModel {
 
   double get remainingBudget => _monthlyBudget - _totalSpent;
 
-  double get budgetProgress => _monthlyBudget > 0 ? _totalSpent / _monthlyBudget : 0.0;
+  double get budgetProgress =>
+      _monthlyBudget > 0 ? _totalSpent / _monthlyBudget : 0.0;
 
   List<Map<String, dynamic>> _spendingCategories = [];
   List<Map<String, dynamic>> get spendingCategories => _spendingCategories;
@@ -32,8 +33,8 @@ class BudgetViewModel extends BaseViewModel {
   Future<void> loadBudgetData() async {
     setBusy(true);
     try {
-      final userId = _authService.currentUser?.id ?? 1;
-      
+      final userId = _authService.currentUser?['userId'] ?? 1;
+
       // Load budget
       try {
         final budgetResponse = await _budgetAPI.getBudget(userId);
@@ -45,7 +46,7 @@ class BudgetViewModel extends BaseViewModel {
 
       // Load current month spending
       await _loadCurrentMonthSpending();
-      
+
       notifyListeners();
     } catch (e) {
       print('Error loading budget data: $e');
@@ -66,7 +67,7 @@ class BudgetViewModel extends BaseViewModel {
       );
 
       _totalSpent = summary['totalExpenses']?.toDouble() ?? 0.0;
-      
+
       // Mock spending categories for now
       _spendingCategories = [
         {
@@ -141,7 +142,7 @@ class BudgetViewModel extends BaseViewModel {
   Future<void> setBudget(double amount) async {
     setBusy(true);
     try {
-      final userId = _authService.currentUser?.id ?? 1;
+      final userId = _authService.currentUser?['userId'] ?? 1;
       await _budgetAPI.setBudget(userId: userId, amount: amount);
       _monthlyBudget = amount;
       notifyListeners();

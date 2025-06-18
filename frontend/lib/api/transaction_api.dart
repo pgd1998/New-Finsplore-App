@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'base_api.dart';
+import 'simple_api_base.dart';
 
-class TransactionAPI extends BaseAPI {
+class TransactionAPI extends SimpleApiBase {
   static const String _transactionsEndpoint = '/api/transactions';
 
   /// Gets user transactions with optional filters
@@ -18,7 +18,7 @@ class TransactionAPI extends BaseAPI {
         'page': page,
         'size': size,
       };
-      
+
       if (category != null) queryParameters['category'] = category;
       if (startDate != null) queryParameters['startDate'] = startDate;
       if (endDate != null) queryParameters['endDate'] = endDate;
@@ -30,7 +30,7 @@ class TransactionAPI extends BaseAPI {
       );
       return List<Map<String, dynamic>>.from(response.data);
     } catch (e) {
-      throw _handleError(e);
+      throw handleError(e); // Use inherited method
     }
   }
 
@@ -50,7 +50,7 @@ class TransactionAPI extends BaseAPI {
       );
       return response.data;
     } catch (e) {
-      throw _handleError(e);
+      throw handleError(e);
     }
   }
 
@@ -60,7 +60,7 @@ class TransactionAPI extends BaseAPI {
       final response = await dio.get('$_transactionsEndpoint/$transactionId');
       return response.data;
     } catch (e) {
-      throw _handleError(e);
+      throw handleError(e);
     }
   }
 
@@ -75,7 +75,7 @@ class TransactionAPI extends BaseAPI {
         data: {'categoryId': categoryId},
       );
     } catch (e) {
-      throw _handleError(e);
+      throw handleError(e);
     }
   }
 
@@ -85,7 +85,7 @@ class TransactionAPI extends BaseAPI {
       final response = await dio.post('$_transactionsEndpoint/fetch');
       return response.data.toString();
     } catch (e) {
-      throw _handleError(e);
+      throw handleError(e);
     }
   }
 
@@ -108,7 +108,7 @@ class TransactionAPI extends BaseAPI {
       );
       return List<Map<String, dynamic>>.from(response.data);
     } catch (e) {
-      throw _handleError(e);
+      throw handleError(e);
     }
   }
 
@@ -123,7 +123,7 @@ class TransactionAPI extends BaseAPI {
       );
       return List<Map<String, dynamic>>.from(response.data);
     } catch (e) {
-      throw _handleError(e);
+      throw handleError(e);
     }
   }
 
@@ -142,7 +142,7 @@ class TransactionAPI extends BaseAPI {
       );
       return response.data;
     } catch (e) {
-      throw _handleError(e);
+      throw handleError(e);
     }
   }
 
@@ -161,14 +161,9 @@ class TransactionAPI extends BaseAPI {
       );
       return List<Map<String, dynamic>>.from(response.data);
     } catch (e) {
-      throw _handleError(e);
+      throw handleError(e);
     }
   }
 
-  Exception _handleError(dynamic error) {
-    if (error is DioException) {
-      return Exception('Transaction API Error: ${error.response?.data?['message'] ?? error.message}');
-    }
-    return Exception('Unexpected error: $error');
-  }
+  // Remove the _handleError method since we now inherit handleError from SimpleApiBase
 }

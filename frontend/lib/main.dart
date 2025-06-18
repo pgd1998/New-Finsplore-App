@@ -142,8 +142,8 @@ class MainApp extends StatelessWidget {
           ),
         ),
 
-        // Card theme
-        cardTheme: CardTheme(
+        // Card theme - FIXED: Use CardThemeData instead of CardTheme
+        cardTheme: CardThemeData(
           color: AppThemeCombos.softWhite,
           elevation: 2,
           margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),

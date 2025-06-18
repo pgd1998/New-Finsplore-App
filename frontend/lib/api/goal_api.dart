@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'base_api.dart';
+import 'simple_api_base.dart';
 
-class GoalAPI extends BaseAPI {
+class GoalAPI extends SimpleApiBase {
   static const String _goalEndpoint = '/api/goal';
 
   /// Sets user financial goal
@@ -35,7 +35,8 @@ class GoalAPI extends BaseAPI {
 
   Exception _handleError(dynamic error) {
     if (error is DioException) {
-      return Exception('Goal API Error: ${error.response?.data?['message'] ?? error.message}');
+      return Exception(
+          'Goal API Error: ${error.response?.data?['message'] ?? error.message}');
     }
     return Exception('Unexpected error: $error');
   }

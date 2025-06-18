@@ -13,12 +13,12 @@ class BillsViewModel extends BaseViewModel {
   List<Map<String, dynamic>> get upcomingBills {
     final now = DateTime.now();
     final nextWeek = now.add(const Duration(days: 7));
-    
+
     return _bills.where((bill) {
       final dueDate = DateTime.tryParse(bill['nextDueDate'] ?? '');
-      return dueDate != null && 
-             dueDate.isAfter(now) && 
-             dueDate.isBefore(nextWeek);
+      return dueDate != null &&
+          dueDate.isAfter(now) &&
+          dueDate.isBefore(nextWeek);
     }).toList();
   }
 
@@ -33,7 +33,7 @@ class BillsViewModel extends BaseViewModel {
   Future<void> loadBills() async {
     setBusy(true);
     try {
-      final userId = _authService.currentUser?.id ?? 1;
+      final userId = _authService.currentUser?['userId'] ?? 1;
       _bills = await _billAPI.getUserBills(userId);
       notifyListeners();
     } catch (e) {
@@ -47,7 +47,7 @@ class BillsViewModel extends BaseViewModel {
   Future<void> addBill(String name, double amount, DateTime dueDate) async {
     setBusy(true);
     try {
-      final userId = _authService.currentUser?.id ?? 1;
+      final userId = _authService.currentUser?['userId'] ?? 1;
       await _billAPI.createBill(
         userId: userId,
         name: name,
@@ -62,7 +62,8 @@ class BillsViewModel extends BaseViewModel {
     }
   }
 
-  Future<void> updateBill(int billId, String name, double amount, DateTime dueDate) async {
+  Future<void> updateBill(
+      int billId, String name, double amount, DateTime dueDate) async {
     setBusy(true);
     try {
       // For now, we'll delete and recreate since backend doesn't have update endpoint

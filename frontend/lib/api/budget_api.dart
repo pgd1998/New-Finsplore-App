@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'base_api.dart';
+import 'simple_api_base.dart';
 
-class BudgetAPI extends BaseAPI {
+class BudgetAPI extends SimpleApiBase {
   static const String _budgetEndpoint = '/api/budget';
 
   /// Sets user budget
@@ -35,7 +35,8 @@ class BudgetAPI extends BaseAPI {
 
   Exception _handleError(dynamic error) {
     if (error is DioException) {
-      return Exception('Budget API Error: ${error.response?.data?['message'] ?? error.message}');
+      return Exception(
+          'Budget API Error: ${error.response?.data?['message'] ?? error.message}');
     }
     return Exception('Unexpected error: $error');
   }

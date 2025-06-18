@@ -18,6 +18,19 @@ class AuthenticationService with ListenableServiceMixin {
   String? get lastName => _lastName;
   String? get token => _token;
 
+  // ADD THIS: currentUser getter that returns user info as a Map
+  Map<String, dynamic>? get currentUser {
+    if (!_isSignedIn) return null;
+
+    return {
+      'userId': _userId,
+      'email': _email,
+      'firstName': _firstName,
+      'lastName': _lastName,
+      'displayName': getDisplayName(),
+    };
+  }
+
   final AccountLoginApi _accountLoginApi = AccountLoginApi();
   final AccountRegisterApi _accountRegisterApi = AccountRegisterApi();
 

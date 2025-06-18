@@ -7,28 +7,29 @@ import '../../../app/app.locator.dart';
 class AIAssistantViewModel extends BaseViewModel {
   final _chatAPI = ChatAPI();
   final _authService = locator<AuthenticationService>();
-  
+
   final TextEditingController messageController = TextEditingController();
-  
+
   List<Map<String, dynamic>> _messages = [];
   List<Map<String, dynamic>> get messages => _messages;
 
   Future<void> sendMessage(String text) async {
     if (text.trim().isEmpty) return;
-    
+
     // Add user message
     _addMessage(text, isUser: true);
     messageController.clear();
     notifyListeners();
-    
+
     setBusy(true);
     try {
-      final userId = _authService.currentUser?.id ?? 1;
+      // FIX: Change currentUser?.id to currentUser?['userId']
+      final userId = _authService.currentUser?['userId'] ?? '1';
       final response = await _chatAPI.sendMessage(
         userId: userId,
         message: text,
       );
-      
+
       // Add AI response
       _addMessage(response, isUser: false);
     } catch (e) {
@@ -49,15 +50,16 @@ class AIAssistantViewModel extends BaseViewModel {
     _addMessage(message, isUser: true);
     messageController.clear();
     notifyListeners();
-    
+
     setBusy(true);
     try {
-      final userId = _authService.currentUser?.id ?? 1;
+      // FIX: Change currentUser?.id to currentUser?['userId']
+      final userId = _authService.currentUser?['userId'] ?? '1';
       final response = await _chatAPI.sendBillReminder(
         userId: userId,
         message: message,
       );
-      
+
       _addMessage(response, isUser: false);
     } catch (e) {
       _addMessage(
@@ -73,15 +75,16 @@ class AIAssistantViewModel extends BaseViewModel {
     _addMessage(message, isUser: true);
     messageController.clear();
     notifyListeners();
-    
+
     setBusy(true);
     try {
-      final userId = _authService.currentUser?.id ?? 1;
+      // FIX: Change currentUser?.id to currentUser?['userId']
+      final userId = _authService.currentUser?['userId'] ?? '1';
       final response = await _chatAPI.generateSuggestion(
         userId: userId,
         message: message,
       );
-      
+
       _addMessage(response, isUser: false);
     } catch (e) {
       _addMessage(
