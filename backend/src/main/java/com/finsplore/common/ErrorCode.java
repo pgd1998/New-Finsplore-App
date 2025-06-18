@@ -31,10 +31,13 @@ public class ErrorCode {
     public static final int TOKEN_EXPIRED = 2002;              // JWT or token expired
     public static final int FORBIDDEN = 2003;                  // Insufficient permissions
     public static final int LOGIN_FAILED = 2004;               // Login failed (e.g., invalid credentials)
+    public static final int AUTH_FAILED = 2004;                // Alias for LOGIN_FAILED
     public static final int USER_NOT_FOUND = 2005;             // User does not exist
-    public static final int ACCOUNT_DISABLED = 2006;           // Account is locked or disabled
-    public static final int INVALID_TOKEN = 2007;              // JWT token is malformed or invalid
-    public static final int EMAIL_NOT_VERIFIED = 2008;         // Email verification required
+    public static final int USER_EXISTS = 2006;                // User already exists
+    public static final int USER_INACTIVE = 2007;              // User account is inactive
+    public static final int ACCOUNT_DISABLED = 2008;           // Account is locked or disabled
+    public static final int INVALID_TOKEN = 2009;              // JWT token is malformed or invalid
+    public static final int EMAIL_NOT_VERIFIED = 2010;         // Email verification required
     
     // ========== Resource Errors (3xxx) ==========
     public static final int RESOURCE_NOT_FOUND = 3001;         // Generic resource not found
@@ -48,6 +51,7 @@ public class ErrorCode {
     public static final int BILL_NOT_FOUND = 3012;             // Bill not found
     public static final int BUDGET_NOT_FOUND = 3013;           // Budget not found
     public static final int GOAL_NOT_FOUND = 3014;             // Financial goal not found
+    public static final int CATEGORY_NOT_FOUND = 3015;         // Transaction category not found
     
     // ========== Business Logic Errors (4xxx) ==========
     public static final int BUSINESS_RULE_VIOLATION = 4001;    // Operation violates business rule
@@ -58,6 +62,7 @@ public class ErrorCode {
     public static final int GOAL_ALREADY_ACHIEVED = 4006;      // Financial goal already met
     
     // ========== Third-Party Service Errors (4xxx) ==========
+    public static final int EXTERNAL_SERVICE_ERROR = 4050;     // Generic external service error
     public static final int BASIQ_API_ERROR = 4100;            // Basiq API error
     public static final int BASIQ_USER_NOT_FOUND = 4101;       // Basiq user not found
     public static final int BASIQ_ACCOUNT_LINK_FAILED = 4102;  // Failed to link bank account via Basiq
