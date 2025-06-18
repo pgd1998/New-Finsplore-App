@@ -40,6 +40,57 @@ class HomeView extends StackedView<HomeViewModel> {
             ),
             SizedBox(height: 20),
             
+            // Quick Actions
+            Text(
+              'Quick Actions',
+              style: AppTextStyles.subheading,
+            ),
+            SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildQuickActionCard(
+                    'Bills',
+                    Icons.receipt_long,
+                    AppThemeCombos.deepTeal,
+                    () => viewModel.navigateToBills(),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: _buildQuickActionCard(
+                    'Budget',
+                    Icons.savings,
+                    Colors.green,
+                    () => viewModel.navigateToBudget(),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildQuickActionCard(
+                    'AI Assistant',
+                    Icons.smart_toy,
+                    Colors.purple,
+                    () => viewModel.navigateToAI(),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: _buildQuickActionCard(
+                    'Goals',
+                    Icons.flag,
+                    Colors.orange,
+                    () => viewModel.navigateToGoals(),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+            
             // Summary Cards
             Row(
               children: [
@@ -82,6 +133,33 @@ class HomeView extends StackedView<HomeViewModel> {
                   Icons.shopping_bag,
                 );
               },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickActionCard(String title, IconData icon, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 32),
+            SizedBox(height: 8),
+            Text(
+              title,
+              style: AppTextStyles.label.copyWith(
+                color: color,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),

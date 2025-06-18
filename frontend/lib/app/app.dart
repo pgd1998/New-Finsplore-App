@@ -18,6 +18,9 @@ import 'package:finsplore/ui/views/transactions/transaction_details/transaction_
 import 'package:finsplore/ui/views/goals/goal_details/goal_details_view.dart';
 import 'package:finsplore/ui/views/goals/add_new_goal/add_new_goal_view.dart';
 import 'package:finsplore/ui/views/assets_liabilities/assets_liabilities_list/assets_liabilities_list_view.dart';
+import 'package:finsplore/ui/views/bills/bills_view.dart';
+import 'package:finsplore/ui/views/budget/budget_view.dart';
+import 'package:finsplore/ui/views/ai_assistant/ai_assistant_view.dart';
 // @stacked-import
 
 @StackedApp(
@@ -37,6 +40,9 @@ import 'package:finsplore/ui/views/assets_liabilities/assets_liabilities_list/as
     MaterialRoute(page: GoalDetailsView),
     MaterialRoute(page: AddNewGoalView),
     MaterialRoute(page: AssetsLiabilitiesListView),
+    MaterialRoute(page: BillsView),
+    MaterialRoute(page: BudgetView),
+    MaterialRoute(page: AIAssistantView),
 // @stacked-route
   ],
   dependencies: [

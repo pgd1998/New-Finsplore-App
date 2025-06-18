@@ -37,10 +37,11 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
     /**
      * Finds bills by category
      */
-    List<Bill> findByUserIdAndBillCategoryAndStatusOrderByNextDueDateAsc(Long userId, String category, Bill.BillStatus status);
-    
+    List<Bill> findByUserIdAndBillCategoryAndStatusOrderByNextDueDateAsc(Long userId, String category,
+            Bill.BillStatus status);
+
     /**
      * Finds bills by user ID ordered by due date
      */
-    List<Bill> findByUserIdOrderByDueDateAsc(Long userId);
+    List<Bill> findByUserIdOrderByNextDueDateAsc(Long userId);
 }

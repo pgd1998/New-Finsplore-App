@@ -18,9 +18,9 @@ public class BillService {
     }
 
     public List<Bill> getBillById(Long id) {
-        return billRepository.findByUserIdOrderByDueDateAsc(id);
+        return billRepository.findByUserIdOrderByNextDueDateAsc(id);
     }
-    
+
     public void deleteBillById(Long billId) {
         billRepository.deleteById(billId);
     }
