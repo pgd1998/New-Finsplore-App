@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,10 +73,10 @@ public class User {
 
     // Financial Information (from BlueRing)
     @Column(name = "monthly_budget", precision = 15, scale = 2)
-    private Double monthlyBudget;
+    private BigDecimal monthlyBudget;
 
     @Column(name = "savings_goal", precision = 15, scale = 2)
-    private Double savingsGoal;
+    private BigDecimal savingsGoal;
 
     // Account Status and Verification
     @Column(name = "is_email_verified", nullable = false)
