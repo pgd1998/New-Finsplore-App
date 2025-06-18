@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.function.Function;
 
@@ -111,6 +113,14 @@ public class JwtUtil {
      */
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
+    }
+
+    /**
+     * Extracts the expiration as ZonedDateTime from the JWT token
+     */
+    public ZonedDateTime extractExpirationAsZonedDateTime(String token) {
+        Date expiration = extractExpiration(token);
+        return expiration.toInstant().atZone(ZoneId.systemDefault());
     }
 
     /**

@@ -3,8 +3,11 @@ package com.finsplore.repository;
 import com.finsplore.entity.Transaction;
 import com.finsplore.entity.TransactionCategory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -23,7 +26,7 @@ import java.util.Optional;
  * @author Finsplore Team
  */
 @Repository
-public interface TransactionRepository extends JpaRepository<Transaction, String> {
+public interface TransactionRepository extends JpaRepository<Transaction, String>, JpaSpecificationExecutor<Transaction> {
 
     // Basic User Transaction Queries
 
@@ -272,4 +275,58 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
      */
     @Query("UPDATE Transaction t SET t.isRecurring = true WHERE t.id IN :transactionIds AND t.user.id = :userId")
     int markTransactionsAsRecurring(@Param("userId") Long userId, @Param("transactionIds") List<String> transactionIds);
+
+    // Additional methods needed by TransactionService
+
+    /**
+     * Finds transactions for a user within a date range (List version)
+     */
+    @Query("SELECT t FROM Transaction t WHERE t.user.id = :userId AND t.transactionDate BETWEEN :startDate AND :endDate ORDER BY t.transactionDate DESC")
+    List<Transaction> findByUserIdAndTransactionDateBetween(@Param("userId") Long userId, 
+                                                          @Param("startDate") LocalDate startDate, 
+                                                          @Param("endDate") LocalDate endDate);
+
+    /**
+     * Finds a transaction by ID and user ID
+     */
+    @Query("SELECT t FROM Transaction t WHERE t.id = :transactionId AND t.user.id = :userId")
+    Optional<Transaction> findByIdAndUserId(@Param("transactionId") String transactionId, @Param("userId") Long userId);
+
+    /**
+     * Finds transactions by user ID and category ID
+     */
+    @Query("SELECT t FROM Transaction t WHERE t.user.id = :userId AND t.category.id = :categoryId ORDER BY t.transactionDate DESC")
+    List<Transaction> findByUserIdAndCategoryId(@Param("userId") Long userId, @Param("categoryId") Long categoryId);
+
+    /**
+     * Finds transactions by user ID, category ID and date range
+     */
+    @Query("SELECT t FROM Transaction t WHERE t.user.id = :userId AND t.category.id = :categoryId AND t.transactionDate BETWEEN :startDate AND :endDate ORDER BY t.transactionDate DESC")
+    List<Transaction> findByUserIdAndCategoryIdAndTransactionDateBetween(@Param("userId") Long userId, 
+                                                                        @Param("categoryId") Long categoryId,
+                                                                        @Param("startDate") LocalDate startDate, 
+                                                                        @Param("endDate") LocalDate endDate);
+
+    /**
+     * Finds recent transactions for a user
+     */
+    @Query(value = "SELECT t FROM Transaction t WHERE t.user.id = :userId ORDER BY t.transactionDate DESC, t.createdAt DESC")
+    List<Transaction> findTopByUserIdOrderByTransactionDateDesc(@Param("userId") Long userId, Pageable pageable);
+
+    default List<Transaction> findTopByUserIdOrderByTransactionDateDesc(Long userId, int limit) {
+        return findTopByUserIdOrderByTransactionDateDesc(userId, PageRequest.of(0, limit));
+    }
+
+    /**
+     * Search transactions by description or merchant name
+     */
+    @Query("SELECT t FROM Transaction t WHERE t.user.id = :userId AND " +
+           "(LOWER(t.description) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(t.merchantName) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+           "ORDER BY t.transactionDate DESC")
+    List<Transaction> searchTransactionsByQuery(@Param("userId") Long userId, @Param("query") String query, Pageable pageable);
+
+    default List<Transaction> searchTransactions(Long userId, String query, int limit) {
+        return searchTransactionsByQuery(userId, query, PageRequest.of(0, limit));
+    }
 }
