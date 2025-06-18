@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 
@@ -166,10 +167,10 @@ public class UserService {
             user.setAvatarUrl(request.getAvatarUrl());
         }
         if (request.getMonthlyBudget() != null) {
-            user.setMonthlyBudget(request.getMonthlyBudget());
+            user.setMonthlyBudget(BigDecimal.valueOf(request.getMonthlyBudget()));
         }
         if (request.getSavingsGoal() != null) {
-            user.setSavingsGoal(request.getSavingsGoal());
+            user.setSavingsGoal(BigDecimal.valueOf(request.getSavingsGoal()));
         }
 
         User updatedUser = userRepository.save(user);
@@ -263,6 +264,54 @@ public class UserService {
     }
 
     /**
+     * Updates user budget
+     */
+    @Transactional
+    public Optional<User> updateUserBudget(Long userId, Double amount) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            user.setMonthlyBudget(BigDecimal.valueOf(amount));
+            userRepository.save(user);
+            log.info("Updated budget for user ID: {} to: {}", userId, amount);
+            return Optional.of(user);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Gets user budget
+     */
+    public Optional<Double> getUserBudget(Long userId) {
+        return userRepository.findById(userId)
+                .map(user -> user.getMonthlyBudget() != null ? user.getMonthlyBudget().doubleValue() : null);
+    }
+
+    /**
+     * Updates user savings goal
+     */
+    @Transactional
+    public Optional<User> updateUserGoal(Long userId, Double amount) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            user.setSavingsGoal(BigDecimal.valueOf(amount));
+            userRepository.save(user);
+            log.info("Updated savings goal for user ID: {} to: {}", userId, amount);
+            return Optional.of(user);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Gets user savings goal
+     */
+    public Optional<Double> getUserGoal(Long userId) {
+        return userRepository.findById(userId)
+                .map(user -> user.getSavingsGoal() != null ? user.getSavingsGoal().doubleValue() : null);
+    }
+
+    /**
      * Converts User entity to UserProfileResponse DTO
      */
     private UserProfileResponse convertToProfileResponse(User user) {
@@ -276,8 +325,8 @@ public class UserService {
         response.setUsername(user.getUsername());
         response.setBasiqUserId(user.getBasiqUserId());
         response.setAvatarUrl(user.getAvatarUrl());
-        response.setMonthlyBudget(user.getMonthlyBudget());
-        response.setSavingsGoal(user.getSavingsGoal());
+        response.setMonthlyBudget(user.getMonthlyBudget() != null ? user.getMonthlyBudget().doubleValue() : null);
+        response.setSavingsGoal(user.getSavingsGoal() != null ? user.getSavingsGoal().doubleValue() : null);
         response.setIsEmailVerified(user.getIsEmailVerified());
         response.setIsActive(user.getIsActive());
         response.setEmailVerifiedAt(user.getEmailVerifiedAt());

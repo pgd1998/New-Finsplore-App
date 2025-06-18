@@ -41,4 +41,9 @@ public interface FinancialSuggestionRepository extends JpaRepository<FinancialSu
      */
     @Query("SELECT s FROM FinancialSuggestion s WHERE s.expiresAt < CURRENT_TIMESTAMP AND s.status != 'EXPIRED'")
     List<FinancialSuggestion> findExpiredSuggestions();
+    
+    /**
+     * Finds suggestions by user ID ordered by creation date
+     */
+    List<FinancialSuggestion> findByUserIdOrderByCreatedAtDesc(Long userId);
 }

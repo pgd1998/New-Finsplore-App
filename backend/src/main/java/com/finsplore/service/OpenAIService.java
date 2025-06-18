@@ -1,156 +1,234 @@
 package com.finsplore.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
- * Service for integrating with OpenAI API for financial insights and AI features.
+ * Service for integrating with OpenAI API.
+ * Handles transaction categorization, financial advice, and chat functionality.
  * 
  * @author Finsplore Team
  */
-@Slf4j
 @Service
 public class OpenAIService {
-
-    @Value("${openai.api.key:#{null}}")
-    private String openaiApiKey;
     
-    @Value("${openai.enabled:false}")
-    private boolean openaiEnabled;
-
+    @Value("${openai.api.key}")
+    private String apiKey;
+    
+    private final RestTemplate restTemplate = new RestTemplate();
+    
     /**
-     * Generates financial advice based on user's spending patterns
+     * Classifies a transaction into predefined categories using AI
      */
-    public String generateFinancialAdvice(String userSpendingData) {
-        if (!openaiEnabled) {
-            log.info("OpenAI service disabled - Would generate financial advice");
-            return "OpenAI service is currently disabled. Please enable it in configuration to get AI-powered financial advice.";
-        }
-
-        try {
-            log.info("Generating financial advice using OpenAI");
-            
-            // TODO: Implement actual OpenAI integration
-            // This should call OpenAI API with user spending data
-            // and return personalized financial advice
-            
-            // Placeholder implementation
-            return "Based on your spending patterns, here are some AI-generated recommendations: " +
-                   "1. Consider reducing dining out expenses by 15% to increase savings. " +
-                   "2. Your entertainment spending is within healthy limits. " +
-                   "3. Consider setting up an emergency fund with 3-6 months of expenses.";
-            
-        } catch (Exception e) {
-            log.error("Failed to generate financial advice", e);
-            return "Sorry, I'm unable to generate financial advice at the moment. Please try again later.";
-        }
-    }
-
-    /**
-     * Categorizes a transaction using AI
-     */
-    public String categorizeTransaction(String description, double amount) {
-        if (!openaiEnabled) {
-            log.info("OpenAI service disabled - Would categorize transaction: {}", description);
-            return predictCategoryBasic(description, amount);
-        }
-
-        try {
-            log.info("Categorizing transaction using OpenAI: {}", description);
-            
-            // TODO: Implement actual OpenAI categorization
-            // This should send transaction details to OpenAI
-            // and get back a category classification
-            
-            // Fallback to basic categorization for now
-            return predictCategoryBasic(description, amount);
-            
-        } catch (Exception e) {
-            log.error("Failed to categorize transaction with OpenAI", e);
-            return predictCategoryBasic(description, amount);
-        }
-    }
-
-    /**
-     * Handles chat messages for the financial assistant
-     */
-    public String handleChatMessage(String message, String userContext) {
-        if (!openaiEnabled) {
-            log.info("OpenAI service disabled - Would handle chat message");
-            return "I'm currently offline. Please enable the AI service to chat with me about your finances!";
-        }
-
-        try {
-            log.info("Processing chat message with OpenAI");
-            
-            // TODO: Implement actual OpenAI chat integration
-            // This should maintain conversation context
-            // and provide helpful financial guidance
-            
-            // Placeholder response
-            return "I understand you're asking about: '" + message + "'. " +
-                   "As your AI financial assistant, I'm here to help with budgeting, " +
-                   "spending analysis, and financial planning. " +
-                   "Could you be more specific about what financial topic you'd like to discuss?";
-            
-        } catch (Exception e) {
-            log.error("Failed to process chat message", e);
-            return "I'm having trouble processing your message right now. Please try again in a moment.";
-        }
-    }
-
-    /**
-     * Generates insights about spending patterns
-     */
-    public String generateSpendingInsights(String transactionData) {
-        if (!openaiEnabled) {
-            log.info("OpenAI service disabled - Would generate spending insights");
-            return "AI-powered insights are currently disabled. Enable OpenAI integration to get personalized spending analysis.";
-        }
-
-        try {
-            log.info("Generating spending insights using OpenAI");
-            
-            // TODO: Implement actual spending insights generation
-            // Analyze transaction patterns and provide insights
-            
-            // Placeholder implementation
-            return "Your spending insights: " +
-                   "• You've spent 12% more on groceries this month compared to last month. " +
-                   "• Your coffee shop visits have increased by 3 times per week. " +
-                   "• You're on track to meet your savings goal this month. " +
-                   "• Consider reviewing subscription services - you have 8 active subscriptions.";
-            
-        } catch (Exception e) {
-            log.error("Failed to generate spending insights", e);
-            return "Unable to generate spending insights at the moment. Please try again later.";
-        }
-    }
-
-    /**
-     * Basic transaction categorization without AI
-     */
-    private String predictCategoryBasic(String description, double amount) {
-        String desc = description.toLowerCase();
+    public String classifyTransaction(String description, List<String> predefinedSubclasses, List<String> customSubclasses) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(apiKey);
         
-        // Basic keyword-based categorization
-        if (desc.contains("grocery") || desc.contains("supermarket") || desc.contains("food")) {
-            return "Groceries";
-        } else if (desc.contains("gas") || desc.contains("fuel") || desc.contains("petrol")) {
-            return "Transportation";
-        } else if (desc.contains("restaurant") || desc.contains("cafe") || desc.contains("coffee")) {
-            return "Dining";
-        } else if (desc.contains("netflix") || desc.contains("spotify") || desc.contains("subscription")) {
-            return "Entertainment";
-        } else if (desc.contains("electricity") || desc.contains("water") || desc.contains("utility")) {
-            return "Utilities";
-        } else if (desc.contains("rent") || desc.contains("mortgage")) {
-            return "Housing";
-        } else if (amount > 0) {
-            return "Income";
-        } else {
-            return "Other";
+        // Combine both category lists
+        List<String> allSubclasses = new ArrayList<>(predefinedSubclasses);
+        if (customSubclasses != null && !customSubclasses.isEmpty()) {
+            allSubclasses.addAll(customSubclasses);
         }
+        
+        // Build prompt
+        String prompt = "As an AI assistant, classify the following transaction into one of these categories. " +
+                "Return ONLY the category name without any additional text or explanation.\n\n" +
+                "Transaction description: \"" + description + "\"\n\n" +
+                "Available categories: " + String.join(", ", allSubclasses);
+        
+        // Build request body
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", "gpt-4o-mini");
+        
+        Map<String, String> systemMessage = new HashMap<>();
+        systemMessage.put("role", "system");
+        systemMessage.put("content", "You are a financial transaction classifier. You must classify transactions into the provided categories. Only respond with the exact category name.");
+        
+        Map<String, String> userMessage = new HashMap<>();
+        userMessage.put("role", "user");
+        userMessage.put("content", prompt);
+        
+        requestBody.put("messages", List.of(systemMessage, userMessage));
+        requestBody.put("temperature", 0.3);
+        requestBody.put("max_tokens", 20);
+        
+        // Send request
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+        ResponseEntity<Map> response = restTemplate.postForEntity(
+                "https://api.openai.com/v1/chat/completions", 
+                request, 
+                Map.class
+        );
+        
+        // Parse response
+        Map<String, Object> responseBody = response.getBody();
+        if (responseBody != null && responseBody.containsKey("choices")) {
+            List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
+            if (!choices.isEmpty()) {
+                Map<String, Object> firstChoice = choices.get(0);
+                Map<String, String> message = (Map<String, String>) firstChoice.get("message");
+                String content = message.get("content").trim();
+                
+                // Validate returned category is in the list
+                if (allSubclasses.contains(content)) {
+                    return content;
+                } else {
+                    // If returned category is not in list, return default
+                    return "Other";
+                }
+            }
+        }
+        
+        // If API call fails or cannot parse response, return default
+        return "Uncategorized";
+    }
+
+    /**
+     * Handles general financial chat conversations
+     */
+    public String chat(Long userId, String userMessage) {
+        // Prepare headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(apiKey);
+        
+        // Build message list
+        List<Map<String, String>> messages = new ArrayList<>();
+        
+        // Add system message
+        Map<String, String> systemMessage = new HashMap<>();
+        systemMessage.put("role", "system");
+        systemMessage.put("content",
+            "You are a distinguished financial strategist with deep expertise across global markets, portfolio management, risk assessment, and wealth preservation. Offer authoritative, data‑driven recommendations tailored to each client's goals, supported by clear rationale and actionable steps. Communicate in precise, professional English without unnecessary elaboration. Less than 100 words is the maximum length of your response. make sure each response must be unique and significantly diff from your last response, for better understanding you can add some emoji if needed. "
+        );
+        messages.add(systemMessage);
+        
+        // Add user message
+        Map<String, String> userMessageMap = new HashMap<>();
+        userMessageMap.put("role", "user");
+        userMessageMap.put("content", userMessage);
+        messages.add(userMessageMap);
+        
+        // Build request body
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", "gpt-4o-mini");
+        requestBody.put("messages", messages);
+        requestBody.put("temperature", 0.7);
+        requestBody.put("max_tokens", 100);
+        
+        return sendChatRequest(requestBody, headers);
+    }
+
+    /**
+     * Generates bill reminder with saving tips
+     */
+    public String generateBillReminder(Long userId, String message) {
+        // Prepare headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(apiKey);
+        
+        // Build message list
+        List<Map<String, String>> messages = new ArrayList<>();
+        
+        // Add system message
+        Map<String, String> systemMessage = new HashMap<>();
+        systemMessage.put("role", "system");
+        systemMessage.put("content",
+            "You are a smart, reliable, and proactive Bills Reminder Assistant. Your job is to help me track, manage, and stay ahead of all my upcoming bills. Most importantly, always provide one or two quick, actionable saving tips for each bill when I add it. If I add an internet bill of $80/month, you might say: \"Consider switching to a provider with a similar plan for $60/month, or check if your current provider has unlisted loyalty discounts. Also, do you need that high of a speed tier?\" This is a straightforward tip. Do not include any rhetorical or follow-up questions. And don't response about you know what I mean, just give me tips, pure tips. Also add some emoji, do not tell me you got it, based on current time you can also give a little tip"
+        );
+        messages.add(systemMessage);
+        
+        // Add user message
+        Map<String, String> userMessageMap = new HashMap<>();
+        userMessageMap.put("role", "user");
+        userMessageMap.put("content", message);
+        messages.add(userMessageMap);
+        
+        // Build request body
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", "gpt-4o-mini");
+        requestBody.put("messages", messages);
+        requestBody.put("temperature", 0.7);
+        requestBody.put("max_tokens", 150);
+        
+        return sendChatRequest(requestBody, headers);
+    }
+
+    /**
+     * Generates financial suggestions
+     */
+    public String generateSuggestion(Long userId, String message) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(apiKey);
+        
+        List<Map<String, String>> messages = new ArrayList<>();
+        
+        Map<String, String> systemMessage = new HashMap<>();
+        systemMessage.put("role", "system");
+        systemMessage.put("content",
+            "You are a financial advisor assistant. Generate a concise financial suggestion category based on the user's message. " +
+            "Your response must be in the following JSON format ONLY:\n" +
+            "{\"suggestion_text\": \"category name\", \"saving_amount\": \"amount\"}\n" +
+            "Rules for suggestion_text:\n" +
+            "1. Must be 1-5 words only\n" +
+            "2. Use categories like 'Less Shopping', 'Cook at Home', 'Cancel Subscriptions', etc.\n" +
+            "3. Be clear and actionable\n" +
+            "The saving_amount should be a reasonable monthly saving estimate in numbers only. And range between 50-1000\n"
+        );
+        messages.add(systemMessage);
+        
+        // Add user message
+        Map<String, String> userMessageMap = new HashMap<>();
+        userMessageMap.put("role", "user");
+        userMessageMap.put("content", message);
+        messages.add(userMessageMap);
+        
+        // Build request body
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", "gpt-4o-mini");
+        requestBody.put("messages", messages);
+        requestBody.put("temperature", 0.3);
+        requestBody.put("max_tokens", 30);
+        
+        return sendChatRequest(requestBody, headers);
+    }
+
+    /**
+     * Sends chat request to OpenAI API
+     */
+    private String sendChatRequest(Map<String, Object> requestBody, HttpHeaders headers) {
+        // Send request
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+        ResponseEntity<Map> response = restTemplate.postForEntity(
+                "https://api.openai.com/v1/chat/completions",
+                request,
+                Map.class
+        );
+        
+        // Parse response
+        Map<String, Object> responseBody = response.getBody();
+        if (responseBody != null && responseBody.containsKey("choices")) {
+            List<Map<String, Object>> choices = (List<Map<String, Object>>) responseBody.get("choices");
+            if (!choices.isEmpty()) {
+                Map<String, Object> firstChoice = choices.get(0);
+                Map<String, String> message = (Map<String, String>) firstChoice.get("message");
+                return message.get("content").trim();
+            }
+        }
+        
+        return "Sorry, Cannot handle your message right now.";
     }
 }

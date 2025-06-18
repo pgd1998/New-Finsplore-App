@@ -1,174 +1,190 @@
 package com.finsplore.service;
 
-import com.finsplore.entity.User;
-import lombok.extern.slf4j.Slf4j;
+import com.finsplore.dto.BasiqAuthLinkRequest;
+import com.finsplore.dto.BasiqAuthLinkResponse;
+import com.finsplore.dto.BasiqTokenResponse;
+import com.finsplore.dto.BasiqUserRequest;
+import com.finsplore.dto.BasiqUserResponse;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import reactor.core.publisher.Mono;
+
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Service for integrating with Basiq API for Open Banking functionality.
+ * Service class for interacting with the Basiq API.
+ * Handles user creation, authentication, and transaction fetching.
  * 
  * @author Finsplore Team
  */
-@Slf4j
 @Service
 public class BasiqService {
 
     private final WebClient webClient;
-    
-    @Value("${basiq.api.key:#{null}}")
+
+    // Inject API key from application properties
+    @Value("${basiq.api.key}")
     private String basiqApiKey;
-    
-    @Value("${basiq.api.url:https://au-api.basiq.io}")
-    private String basiqApiUrl;
-    
-    @Value("${basiq.enabled:false}")
-    private boolean basiqEnabled;
 
-    public BasiqService() {
-        this.webClient = WebClient.builder()
-                .baseUrl(basiqApiUrl)
-                .build();
+    private String accessToken;
+    private long tokenExpireTime = 0;
+
+    public BasiqService(WebClient.Builder webClientBuilder) {
+        this.webClient = webClientBuilder.baseUrl("https://au-api.basiq.io").build();
     }
 
     /**
-     * Creates a Basiq user for the given Finsplore user
+     * Authenticates with Basiq API and gets access token
      */
-    public String createBasiqUser(User user) {
-        if (!basiqEnabled) {
-            log.info("Basiq service disabled - Would create Basiq user for: {}", user.getEmail());
-            return "mock-basiq-user-" + user.getId();
-        }
+    public void authenticate() {
+        Mono<BasiqTokenResponse> responseMono = webClient.post()
+                .uri("/token")
+                .header(HttpHeaders.AUTHORIZATION, "Basic " + basiqApiKey)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                .header("basiq-version", "3.0")
+                .body(BodyInserters.fromFormData("scope", "SERVER_ACCESS"))
+                .retrieve()
+                .bodyToMono(BasiqTokenResponse.class);
+    
+        BasiqTokenResponse tokenResponse = responseMono.block();
+    
+        if (tokenResponse != null) {
+            this.accessToken = tokenResponse.getAccessToken();
+            this.tokenExpireTime = System.currentTimeMillis() + (60 * 60 * 1000); // 1 hour
 
-        try {
-            log.info("Creating Basiq user for: {}", user.getEmail());
-            
-            // TODO: Implement actual Basiq user creation
-            // This should call Basiq API to create a user
-            // POST /users with user details
-            
-            // Placeholder implementation
-            String basiqUserId = "basiq-user-" + System.currentTimeMillis();
-            
-            log.info("Created Basiq user: {} for email: {}", basiqUserId, user.getEmail());
-            return basiqUserId;
-            
-        } catch (Exception e) {
-            log.error("Failed to create Basiq user for: {}", user.getEmail(), e);
-            throw new RuntimeException("Failed to create Basiq user", e);
+            System.out.println("Basiq Access Token: " + this.accessToken);
+        } else {
+            throw new RuntimeException("Failed to authenticate with Basiq API");
         }
     }
 
     /**
-     * Generates authentication link for bank account connection
+     * Ensures we have a valid access token
      */
-    public String generateAuthLink(String basiqUserId) {
-        if (!basiqEnabled) {
-            log.info("Basiq service disabled - Would generate auth link for: {}", basiqUserId);
-            return "https://mock-auth-link.basiq.io/connect/" + basiqUserId;
+    private void ensureAuthenticated() {
+        if (this.accessToken == null || System.currentTimeMillis() > tokenExpireTime) {
+            authenticate();
         }
+    }
 
-        try {
-            log.info("Generating auth link for Basiq user: {}", basiqUserId);
-            
-            // TODO: Implement actual auth link generation
-            // This should call Basiq API to create an auth link
-            // POST /auth/link with user ID and configuration
-            
-            // Placeholder implementation
-            String authLink = basiqApiUrl + "/connect/" + basiqUserId + "?token=" + System.currentTimeMillis();
-            
-            log.info("Generated auth link for Basiq user: {}", basiqUserId);
+    /**
+     * Creates a new Basiq user
+     */
+    public String createUser(String email, String mobile, String firstName, String lastName) {
+        ensureAuthenticated();
+        Mono<BasiqUserResponse> responseMono = webClient.post()
+                .uri("/users")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(new BasiqUserRequest(email, mobile, firstName, lastName)))
+                .retrieve()
+                .bodyToMono(BasiqUserResponse.class);
+
+        BasiqUserResponse userResponse = responseMono.block();
+
+        if (userResponse != null) {
+            return userResponse.getId();
+        } else {
+            throw new RuntimeException("Failed to create user with Basiq API");
+        }
+    }
+
+    /**
+     * Creates a Basiq user for an existing app user
+     */
+    public String createBasiqUser(com.finsplore.entity.User user) {
+        return createUser(
+            user.getEmail(),
+            user.getMobileNumber() != null ? user.getMobileNumber() : "",
+            user.getFirstName() != null ? user.getFirstName() : "",
+            user.getLastName() != null ? user.getLastName() : ""
+        );
+    }
+
+    /**
+     * Generates authentication link for bank account linking
+     */
+    public String generateAuthLink(String userId) {
+        ensureAuthenticated();
+    
+        Mono<BasiqAuthLinkResponse> responseMono = webClient.post()
+                .uri("/users/" + userId + "/auth_link")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(new BasiqAuthLinkRequest()))
+                .retrieve()
+                .bodyToMono(BasiqAuthLinkResponse.class);
+    
+        BasiqAuthLinkResponse authLinkResponse = responseMono.block();
+    
+        if (authLinkResponse != null && authLinkResponse.getLinks() != null) {
+            String authLink = authLinkResponse.getLinks().getPublic();
             return authLink;
-            
-        } catch (Exception e) {
-            log.error("Failed to generate auth link for Basiq user: {}", basiqUserId, e);
-            throw new RuntimeException("Failed to generate auth link", e);
+        } else {
+            throw new RuntimeException("Failed to generate auth link for Basiq user");
         }
     }
 
     /**
-     * Fetches user's bank accounts from Basiq
+     * Fetches all transactions for a user
      */
-    public void fetchUserAccounts(String basiqUserId) {
-        if (!basiqEnabled) {
-            log.info("Basiq service disabled - Would fetch accounts for: {}", basiqUserId);
-            return;
-        }
+    public String fetchAllTransactions(String userId) {
+        ensureAuthenticated();
+        
+        Mono<String> responseMono = webClient.get()
+        .uri(uriBuilder -> uriBuilder
+            .path("/users/" + userId + "/transactions")
+            .queryParam("limit", 500) // Add query parameter
+            .build())
+        .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE) // Add "accept" header
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken) // Add authorization header
+        .retrieve()
+        .bodyToMono(String.class); // Retrieve the response as a String
 
-        try {
-            log.info("Fetching accounts for Basiq user: {}", basiqUserId);
-            
-            // TODO: Implement account fetching
-            // GET /users/{userId}/accounts
-            
-        } catch (Exception e) {
-            log.error("Failed to fetch accounts for Basiq user: {}", basiqUserId, e);
-            throw new RuntimeException("Failed to fetch user accounts", e);
+        // Block to get the response synchronously (or handle it reactively)
+        String response = responseMono.block();
+
+        if (response != null) {
+            return response; // Return the raw JSON response
+        } else {
+            throw new RuntimeException("Failed to fetch transactions for Basiq user");
         }
     }
 
     /**
-     * Fetches user's transactions from Basiq
+     * Fetches account balance for a user
      */
-    public void fetchUserTransactions(String basiqUserId) {
-        if (!basiqEnabled) {
-            log.info("Basiq service disabled - Would fetch transactions for: {}", basiqUserId);
-            return;
-        }
+    public String fetchAccountBalance(String userId) {
+        ensureAuthenticated();
+        
+        Mono<String> responseMono = webClient.get()
+        .uri(uriBuilder -> uriBuilder
+            .path("/users/" + userId + "/accounts")
+            .queryParam("limit", 500) // Add query parameter
+            .build())
+        .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE) // Add "accept" header
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken) // Add authorization header
+        .retrieve()
+        .bodyToMono(String.class); // Retrieve the response as a String
 
-        try {
-            log.info("Fetching transactions for Basiq user: {}", basiqUserId);
-            
-            // TODO: Implement transaction fetching
-            // GET /users/{userId}/transactions
-            
-        } catch (Exception e) {
-            log.error("Failed to fetch transactions for Basiq user: {}", basiqUserId, e);
-            throw new RuntimeException("Failed to fetch user transactions", e);
-        }
-    }
+        // Block to get the response synchronously (or handle it reactively)
+        String response = responseMono.block();
 
-    /**
-     * Refreshes connection for a Basiq user
-     */
-    public void refreshConnection(String basiqUserId) {
-        if (!basiqEnabled) {
-            log.info("Basiq service disabled - Would refresh connection for: {}", basiqUserId);
-            return;
-        }
-
-        try {
-            log.info("Refreshing connection for Basiq user: {}", basiqUserId);
-            
-            // TODO: Implement connection refresh
-            // POST /users/{userId}/auth/refresh
-            
-        } catch (Exception e) {
-            log.error("Failed to refresh connection for Basiq user: {}", basiqUserId, e);
-            throw new RuntimeException("Failed to refresh connection", e);
-        }
-    }
-
-    /**
-     * Deletes a Basiq user
-     */
-    public void deleteBasiqUser(String basiqUserId) {
-        if (!basiqEnabled) {
-            log.info("Basiq service disabled - Would delete Basiq user: {}", basiqUserId);
-            return;
-        }
-
-        try {
-            log.info("Deleting Basiq user: {}", basiqUserId);
-            
-            // TODO: Implement user deletion
-            // DELETE /users/{userId}
-            
-        } catch (Exception e) {
-            log.error("Failed to delete Basiq user: {}", basiqUserId, e);
-            throw new RuntimeException("Failed to delete Basiq user", e);
+        if (response != null) {
+            return response; // Return the raw JSON response
+        } else {
+            throw new RuntimeException("Failed to fetch account balance for Basiq user");
         }
     }
 }

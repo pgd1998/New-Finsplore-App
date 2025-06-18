@@ -353,4 +353,28 @@ public interface TransactionRepository
        default List<Transaction> searchTransactions(Long userId, String query, int limit) {
               return searchTransactionsByQuery(userId, query, PageRequest.of(0, limit));
        }
+       
+       /**
+        * Finds all transactions for a user (simple method for BlueRing compatibility)
+        */
+       @Query("SELECT t FROM Transaction t WHERE t.user.id = :userId ORDER BY t.transactionDate DESC")
+       List<Transaction> findByUserId(@Param("userId") Long userId);
+       
+       /**
+        * Finds top 500 transactions for a user ordered by date
+        */
+       @Query(value = "SELECT * FROM transactions WHERE user_id = :userId ORDER BY transaction_date DESC LIMIT 500", nativeQuery = true)
+       List<Transaction> findTop500ByUserIdOrderByTransactionDateDesc(@Param("userId") Long userId);
+       
+       /**
+        * Finds transactions by user ID and account
+        */
+       @Query("SELECT t FROM Transaction t WHERE t.user.id = :userId AND t.accountId = :account ORDER BY t.transactionDate DESC")
+       List<Transaction> findByUserIdAndAccount(@Param("userId") Long userId, @Param("account") String account);
+       
+       /**
+        * Finds top 500 transactions by user ID and account
+        */
+       @Query(value = "SELECT * FROM transactions WHERE user_id = :userId AND account_id = :account ORDER BY transaction_date DESC LIMIT 500", nativeQuery = true)
+       List<Transaction> findTop500ByUserIdAndAccountOrderByTransactionDateDesc(@Param("userId") Long userId, @Param("account") String account);
 }
