@@ -30,6 +30,7 @@ com/finsplore/dto/BasiqAuthLinkResponse.class
 com/finsplore/entity/FinancialGoal$GoalType.class
 com/finsplore/service/EmailService.class
 com/finsplore/util/PasswordEncoderUtil.class
+com/finsplore/service/BillService.class
 com/finsplore/controller/SuggestionController.class
 com/finsplore/service/OpenAIService.class
 com/finsplore/exception/GlobalExceptionHandler.class

@@ -60,12 +60,10 @@
         </dependency>
         
         <!-- Redis for caching and session management (BlueRing Addition) -->
-        <!-- Commented out for initial testing - uncomment when Redis is available
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
-        -->
 
         <!-- Security and JWT Dependencies (RedBack Base) -->
         <dependency>
