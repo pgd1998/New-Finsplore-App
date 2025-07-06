@@ -90,9 +90,20 @@ public class BasiqController {
                 String basiqUserId = basiqService.createBasiqUser(user);
                 user.setBasiqUserId(basiqUserId);
                 userRepository.save(user);
+            } else {
+                // Update existing Basiq user with user's actual mobile number
+                String userMobile = user.getMobileNumber();
+                if (userMobile != null && !userMobile.trim().isEmpty()) {
+                    System.out.println("📱 Updating Basiq user with mobile: " + userMobile);
+                    basiqService.updateBasiqUserMobile(user.getBasiqUserId(), userMobile);
+                } else {
+                    // Mobile number is required - return error
+                    return ResponseEntity.badRequest()
+                            .body(ApiResponse.error(400, "Mobile number is required. Please update your profile with a valid mobile number."));
+                }
             }
 
-            // Generate auth link
+            // Generate auth link - will use user's actual mobile number or allow entry on Basiq's page
             String authLink = basiqService.generateAuthLink(user.getBasiqUserId());
 
             Map<String, Object> response = new HashMap<>();

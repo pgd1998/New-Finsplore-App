@@ -102,12 +102,47 @@ public class BasiqService {
     }
 
     /**
+     * Updates a Basiq user's mobile number
+     */
+    public void updateBasiqUserMobile(String userId, String mobile) {
+        ensureAuthenticated();
+        
+        Map<String, String> updateRequest = new HashMap<>();
+        updateRequest.put("mobile", mobile);
+        
+        try {
+            webClient.patch()
+                    .uri("/users/" + userId)
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                    .header("basiq-version", "3.0")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(BodyInserters.fromValue(updateRequest))
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+                    
+            System.out.println("✅ Updated Basiq user mobile number: " + mobile);
+        } catch (Exception e) {
+            System.err.println("❌ Failed to update Basiq user mobile: " + e.getMessage());
+            // If update fails, we'll proceed with auth link anyway
+        }
+    }
+
+    /**
      * Creates a Basiq user for an existing app user
      */
     public String createBasiqUser(com.finsplore.entity.User user) {
+        // Mobile number is now required during registration
+        String mobileNumber = user.getMobileNumber();
+        if (mobileNumber == null || mobileNumber.trim().isEmpty()) {
+            throw new RuntimeException("Mobile number is required. Please update your profile with a valid mobile number.");
+        }
+        
+        System.out.println("📱 Using user's mobile number from profile: " + mobileNumber);
+            
         return createUser(
                 user.getEmail(),
-                user.getMobileNumber() != null ? user.getMobileNumber() : "",
+                mobileNumber,
                 user.getFirstName() != null ? user.getFirstName() : "",
                 user.getLastName() != null ? user.getLastName() : "");
     }
@@ -116,24 +151,61 @@ public class BasiqService {
      * Generates authentication link for bank account linking
      */
     public String generateAuthLink(String userId) {
+        return generateAuthLink(userId, null);
+    }
+
+    /**
+     * Generates authentication link for bank account linking with optional mobile number
+     * @param userId Basiq user ID
+     * @param userMobile User's mobile number (optional - if null, Basiq will collect it)
+     */
+    public String generateAuthLink(String userId, String userMobile) {
         ensureAuthenticated();
+        
+        try {
+            // Create minimal auth link request - let Basiq handle mobile collection
+            BasiqAuthLinkRequest authLinkRequest = new BasiqAuthLinkRequest();
+            
+            System.out.println("🔗 Generating auth link for Basiq user: " + userId);
+            System.out.println("📱 Request scope: " + String.join(", ", authLinkRequest.getScope()));
 
-        Mono<BasiqAuthLinkResponse> responseMono = webClient.post()
-                .uri("/users/" + userId + "/auth_link")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
-                .header("basiq-version", "3.0") // ← ADD THIS LINE
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(BodyInserters.fromValue(new BasiqAuthLinkRequest()))
-                .retrieve()
-                .bodyToMono(BasiqAuthLinkResponse.class);
+            Mono<BasiqAuthLinkResponse> responseMono = webClient.post()
+                    .uri("/users/" + userId + "/auth_link")
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                    .header("basiq-version", "3.0")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(BodyInserters.fromValue(authLinkRequest))
+                    .retrieve()
+                    .onStatus(status -> status.is4xxClientError(), response -> {
+                        return response.bodyToMono(String.class)
+                                .map(errorBody -> {
+                                    System.err.println("❌ Basiq API 4xx Error: " + errorBody);
+                                    return new RuntimeException("Basiq API Error: " + errorBody);
+                                });
+                    })
+                    .onStatus(status -> status.is5xxServerError(), response -> {
+                        return response.bodyToMono(String.class)
+                                .map(errorBody -> {
+                                    System.err.println("❌ Basiq API 5xx Error: " + errorBody);
+                                    return new RuntimeException("Basiq Server Error: " + errorBody);
+                                });
+                    })
+                    .bodyToMono(BasiqAuthLinkResponse.class);
+        
+            BasiqAuthLinkResponse authLinkResponse = responseMono.block();
 
-        BasiqAuthLinkResponse authLinkResponse = responseMono.block();
-
-        if (authLinkResponse != null && authLinkResponse.getLinks() != null) {
-            String authLink = authLinkResponse.getLinks().getPublic();
-            return authLink;
-        } else {
-            throw new RuntimeException("Failed to generate auth link for Basiq user");
+            if (authLinkResponse != null && authLinkResponse.getLinks() != null) {
+                String authLink = authLinkResponse.getLinks().getPublic();
+                System.out.println("✅ Successfully generated auth link: " + authLink);
+                return authLink;
+            } else {
+                System.err.println("❌ Auth link response was null or missing links");
+                throw new RuntimeException("Failed to get auth link from Basiq response");
+            }
+        
+        } catch (Exception e) {
+            System.err.println("❌ Exception during auth link generation: " + e.getMessage());
+            throw new RuntimeException("Failed to generate auth link: " + e.getMessage(), e);
         }
     }
 

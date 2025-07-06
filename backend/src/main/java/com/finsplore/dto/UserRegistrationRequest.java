@@ -32,6 +32,7 @@ public class UserRegistrationRequest {
     @Size(max = 100, message = "Last name must not exceed 100 characters")
     private String lastName;
 
+    @NotBlank(message = "Mobile number is required")
     @Size(max = 20, message = "Mobile number must not exceed 20 characters")
     private String mobileNumber;
 

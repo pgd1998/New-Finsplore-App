@@ -55,6 +55,20 @@ class SignupView extends StackedView<SignupViewModel> {
               ),
               SizedBox(height: 16),
               
+              // Mobile Number
+              Text('Mobile Number *', style: AppTextStyles.label),
+              TextField(
+                controller: viewModel.mobileNumberController,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                  hintText: 'Enter your mobile number (e.g. +61412345678)',
+                  prefixIcon: Icon(Icons.phone_outlined, color: AppThemeCombos.deepTeal),
+                  helperText: 'Required: Include country code (e.g., +61 for Australia)',
+                  helperStyle: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+              ),
+              SizedBox(height: 16),
+              
               // Password
               Text('Password', style: AppTextStyles.label),
               TextField(

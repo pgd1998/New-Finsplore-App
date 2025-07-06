@@ -18,7 +18,7 @@ class BasiqApi {
   }
 
   /// Check if user is authenticated
-  bool get _isAuthenticated => _authService.token != null;
+  bool get isAuthenticated => _authService.token != null;
 
   /// Creates a Basiq user for the current app user
   Future<Map<String, dynamic>?> createBasiqUser() async {

@@ -86,7 +86,7 @@ class AuthenticationService with ListenableServiceMixin {
   }
 
   Future<bool> signUp(
-      String email, String password, String firstName, String lastName) async {
+      String email, String password, String firstName, String lastName, [String? mobileNumber]) async {
     try {
       // ✅ Correct - using named parameters
       final res = await _accountRegisterApi.register(
@@ -94,6 +94,7 @@ class AuthenticationService with ListenableServiceMixin {
         password: password,
         firstName: firstName,
         lastName: lastName,
+        phoneNumber: mobileNumber,
       );
 
       // If registration successful, automatically sign in

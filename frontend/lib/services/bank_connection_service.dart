@@ -31,7 +31,8 @@ class BankConnectionService {
         final accountsData = result['data']?['accounts'] as List?;
         if (accountsData != null) {
           return accountsData
-              .map((data) => ConnectedAccount.fromJson(data as Map<String, dynamic>))
+              .map((data) =>
+                  ConnectedAccount.fromJson(data as Map<String, dynamic>))
               .toList();
         }
       }
@@ -46,24 +47,41 @@ class BankConnectionService {
   Future<String?> generateBankConnectionLink() async {
     try {
       print('Attempting to generate bank connection link...');
-      
+
+      // Check if user is authenticated first
+      if (!_basiqApi.isAuthenticated) {
+        print('ERROR: User not authenticated. Please sign in first.');
+        throw Exception('Please sign in to connect your bank account');
+      }
+
       // First ensure user has a Basiq user account
+      print('Creating Basiq user...');
       final userResult = await _basiqApi.createBasiqUser();
       print('Create user result: $userResult');
-      
+
+      if (userResult == null) {
+        throw Exception(
+            'Failed to create Basiq user. Please check your connection and try again.');
+      }
+
       // Then generate auth link
+      print('Generating auth link...');
       final authResult = await _basiqApi.generateAuthLink();
       print('Auth link result: $authResult');
-      
-      if (authResult != null) {
+
+      if (authResult != null && authResult['data'] != null) {
         final authLink = authResult['data']?['authLink'] as String?;
-        print('Generated auth link: $authLink');
-        return authLink;
+        if (authLink != null) {
+          print('✅ Successfully generated auth link: $authLink');
+          return authLink;
+        }
       }
-      return null;
+
+      throw Exception(
+          'Backend did not return a valid auth link. Please try again.');
     } catch (e) {
-      print('Error generating bank connection link: $e');
-      return null;
+      print('❌ Error generating bank connection link: $e');
+      rethrow; // Re-throw so the UI can show the specific error
     }
   }
 
