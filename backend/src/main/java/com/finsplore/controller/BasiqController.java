@@ -1,7 +1,9 @@
 package com.finsplore.controller;
 
 import com.finsplore.common.ApiResponse;
+import com.finsplore.common.ErrorCode;
 import com.finsplore.entity.User;
+import com.finsplore.repository.UserRepository;
 import com.finsplore.service.BasiqService;
 import com.finsplore.service.UserService;
 
@@ -25,11 +27,13 @@ public class BasiqController {
 
     private final BasiqService basiqService;
     private final UserService userService;
+    private final UserRepository userRepository;
 
     @Autowired
-    public BasiqController(BasiqService basiqService, UserService userService) {
+    public BasiqController(BasiqService basiqService, UserService userService, UserRepository userRepository) {
         this.basiqService = basiqService;
         this.userService = userService;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -40,23 +44,23 @@ public class BasiqController {
         try {
             String userEmail = authentication.getName();
             User user = userService.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
             // Check if user already has a Basiq ID
             if (user.getBasiqUserId() != null && !user.getBasiqUserId().isEmpty()) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("basiqUserId", user.getBasiqUserId());
                 response.put("message", "Basiq user already exists");
-                
+
                 return ResponseEntity.ok(ApiResponse.success(response, "Basiq user already exists"));
             }
 
             // Create new Basiq user
             String basiqUserId = basiqService.createBasiqUser(user);
-            
+
             // Save Basiq user ID to our user record
             user.setBasiqUserId(basiqUserId);
-            userService.save(user);
+            userRepository.save(user);
 
             Map<String, Object> response = new HashMap<>();
             response.put("basiqUserId", basiqUserId);
@@ -66,7 +70,8 @@ public class BasiqController {
 
         } catch (Exception e) {
             return ResponseEntity.badRequest()
-                .body(ApiResponse.error("Failed to create Basiq user: " + e.getMessage()));
+                    .body(ApiResponse.error(ErrorCode.BASIQ_API_ERROR,
+                            "Failed to create Basiq user: " + e.getMessage()));
         }
     }
 
@@ -78,13 +83,13 @@ public class BasiqController {
         try {
             String userEmail = authentication.getName();
             User user = userService.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
             // Ensure user has a Basiq user ID
             if (user.getBasiqUserId() == null || user.getBasiqUserId().isEmpty()) {
                 String basiqUserId = basiqService.createBasiqUser(user);
                 user.setBasiqUserId(basiqUserId);
-                userService.save(user);
+                userRepository.save(user);
             }
 
             // Generate auth link
@@ -98,7 +103,7 @@ public class BasiqController {
 
         } catch (Exception e) {
             return ResponseEntity.badRequest()
-                .body(ApiResponse.error("Failed to generate auth link: " + e.getMessage()));
+                    .body(ApiResponse.error(500, "Failed to generate auth link: " + e.getMessage()));
         }
     }
 
@@ -110,13 +115,13 @@ public class BasiqController {
         try {
             String userEmail = authentication.getName();
             User user = userService.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
             if (user.getBasiqUserId() == null || user.getBasiqUserId().isEmpty()) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("accounts", new Object[0]);
                 response.put("message", "No Basiq user found");
-                
+
                 return ResponseEntity.ok(ApiResponse.success(response, "No connected accounts"));
             }
 
@@ -131,7 +136,7 @@ public class BasiqController {
 
         } catch (Exception e) {
             return ResponseEntity.badRequest()
-                .body(ApiResponse.error("Failed to fetch accounts: " + e.getMessage()));
+                    .body(ApiResponse.error(500, "Failed to fetch accounts: " + e.getMessage()));
         }
     }
 
@@ -143,11 +148,12 @@ public class BasiqController {
         try {
             String userEmail = authentication.getName();
             User user = userService.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
             if (user.getBasiqUserId() == null || user.getBasiqUserId().isEmpty()) {
                 return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("No Basiq user found. Please connect a bank account first."));
+                        .body(ApiResponse.error(ErrorCode.BASIQ_USER_NOT_FOUND,
+                                "No Basiq user found. Please connect a bank account first."));
             }
 
             // Fetch transactions
@@ -161,7 +167,7 @@ public class BasiqController {
 
         } catch (Exception e) {
             return ResponseEntity.badRequest()
-                .body(ApiResponse.error("Failed to fetch transactions: " + e.getMessage()));
+                    .body(ApiResponse.error(500, "Failed to fetch transactions: " + e.getMessage()));
         }
     }
 
@@ -173,11 +179,12 @@ public class BasiqController {
         try {
             String userEmail = authentication.getName();
             User user = userService.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
             if (user.getBasiqUserId() == null || user.getBasiqUserId().isEmpty()) {
                 return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("No Basiq user found. Please connect a bank account first."));
+                        .body(ApiResponse.error(ErrorCode.BASIQ_USER_NOT_FOUND,
+                                "No Basiq user found. Please connect a bank account first."));
             }
 
             // Fetch account balances
@@ -191,7 +198,7 @@ public class BasiqController {
 
         } catch (Exception e) {
             return ResponseEntity.badRequest()
-                .body(ApiResponse.error("Failed to fetch balances: " + e.getMessage()));
+                    .body(ApiResponse.error(ErrorCode.BASIQ_API_ERROR, "Failed to fetch balances: " + e.getMessage()));
         }
     }
 
@@ -203,11 +210,12 @@ public class BasiqController {
         try {
             String userEmail = authentication.getName();
             User user = userService.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
             if (user.getBasiqUserId() == null || user.getBasiqUserId().isEmpty()) {
                 return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("No Basiq user found. Please connect a bank account first."));
+                        .body(ApiResponse.error(ErrorCode.BASIQ_USER_NOT_FOUND,
+                                "No Basiq user found. Please connect a bank account first."));
             }
 
             // Refresh both transactions and balances
@@ -224,7 +232,8 @@ public class BasiqController {
 
         } catch (Exception e) {
             return ResponseEntity.badRequest()
-                .body(ApiResponse.error("Failed to refresh bank data: " + e.getMessage()));
+                    .body(ApiResponse.error(ErrorCode.BASIQ_API_ERROR,
+                            "Failed to refresh bank data: " + e.getMessage()));
         }
     }
 }

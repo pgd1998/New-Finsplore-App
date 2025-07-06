@@ -56,6 +56,7 @@ com/finsplore/dto/BudgetRequest.class
 com/finsplore/entity/TransactionCategory$CategoryType.class
 com/finsplore/dto/UserProfileUpdateRequest.class
 com/finsplore/service/BasiqService.class
+com/finsplore/entity/Bill$1.class
 com/finsplore/repository/TransactionCategoryRepository.class
 com/finsplore/controller/BillController.class
 com/finsplore/security/SecurityConfig.class
