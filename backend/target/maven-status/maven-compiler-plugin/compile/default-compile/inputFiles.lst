@@ -2,6 +2,7 @@
 /Users/poorvithgowda/Documents/Finsplore Students Repos/New-Finsplore-App/backend/src/main/java/com/finsplore/common/ApiResponse.java
 /Users/poorvithgowda/Documents/Finsplore Students Repos/New-Finsplore-App/backend/src/main/java/com/finsplore/common/ErrorCode.java
 /Users/poorvithgowda/Documents/Finsplore Students Repos/New-Finsplore-App/backend/src/main/java/com/finsplore/controller/AuthController.java
+/Users/poorvithgowda/Documents/Finsplore Students Repos/New-Finsplore-App/backend/src/main/java/com/finsplore/controller/BasiqController.java
 /Users/poorvithgowda/Documents/Finsplore Students Repos/New-Finsplore-App/backend/src/main/java/com/finsplore/controller/BillController.java
 /Users/poorvithgowda/Documents/Finsplore Students Repos/New-Finsplore-App/backend/src/main/java/com/finsplore/controller/BudgetController.java
 /Users/poorvithgowda/Documents/Finsplore Students Repos/New-Finsplore-App/backend/src/main/java/com/finsplore/controller/ChatController.java

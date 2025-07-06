@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:finsplore/app/app.locator.dart';
 import 'package:finsplore/app/app.router.dart';
 import 'package:finsplore/services/authentication_service.dart';
+import 'package:finsplore/ui/views/signup/signup_view.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -48,7 +49,7 @@ class SigninViewModel extends BaseViewModel {
         // Clear the form
         _clearForm();
         // Navigate to main screen
-        _navService.replaceWithMainScreenView();
+        _navService.replaceWith(Routes.mainScreenView);
         setBusy(false);
         return true;
       } else {
@@ -79,7 +80,7 @@ class SigninViewModel extends BaseViewModel {
   }
 
   void navigateToMainScreen() {
-    _navService.replaceWithMainScreenView();
+    _navService.replaceWith(Routes.mainScreenView);
   }
 
   void navigateToSignUp() {

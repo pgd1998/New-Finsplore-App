@@ -17,18 +17,22 @@ class HomeViewModel extends BaseViewModel {
   }
 
   void navigateToBills() {
-    _navigationService.navigateTo(Routes.billsView);
+    // TODO: Implement bills navigation
+    print('Navigate to Bills');
   }
 
   void navigateToBudget() {
-    _navigationService.navigateTo(Routes.budgetView);
+    // TODO: Implement budget navigation
+    print('Navigate to Budget');
   }
 
   void navigateToAI() {
-    _navigationService.navigateTo(Routes.aIAssistantView);
+    // TODO: Implement AI assistant navigation
+    print('Navigate to AI Assistant');
   }
 
   void navigateToGoals() {
-    _navigationService.navigateTo(Routes.goalManagementView);
+    // TODO: Implement goals navigation
+    print('Navigate to Goals');
   }
 }

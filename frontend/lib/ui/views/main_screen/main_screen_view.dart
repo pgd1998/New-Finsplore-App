@@ -1,10 +1,9 @@
 import 'package:finsplore/ui/common/colors_helper.dart';
+import 'package:finsplore/ui/common/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:stacked/stacked.dart';
-// import '../../widgets/add_new/add_new_item_button.dart';
-// import '../../buttons/floating_chatbot_button.dart';
-// import '../../widgets/common/nav_bar/nav_bar.dart';
+import 'package:animate_do/animate_do.dart';
 import 'main_screen_viewmodel.dart';
 
 // Tabs
@@ -84,27 +83,116 @@ class MainScreenView extends StackedView<MainScreenViewModel> {
         bottomNavigationBar: Stack(
           alignment: Alignment.bottomCenter,
           children: [
-            // TODO: Add BottomNavBar when copied
             Container(
-              height: 80,
-              color: AppThemeCombos.deepTeal,
+              height: 90,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppThemeCombos.deepTeal.withOpacity(0.95),
+                    AppThemeCombos.deepTeal,
+                  ],
+                ),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildNavItem(0, Icons.home, 'Home', viewModel),
-                  _buildNavItem(1, Icons.trending_up, 'Tracking', viewModel),
-                  SizedBox(width: 60), // Space for FAB
-                  _buildNavItem(3, Icons.analytics, 'Analytics', viewModel),
-                  _buildNavItem(4, Icons.person, 'Account', viewModel),
+                  _buildModernNavItem(0, Icons.home_filled, 'Home', viewModel),
+                  _buildModernNavItem(1, Icons.trending_up, 'Tracking', viewModel),
+                  const SizedBox(width: 60), // Space for FAB
+                  _buildModernNavItem(3, Icons.analytics, 'Analytics', viewModel),
+                  _buildModernNavItem(4, Icons.person, 'Account', viewModel),
                 ],
               ),
             ),
             Positioned(
-              bottom: 20,
-              child: FloatingActionButton(
-                onPressed: () {},
-                backgroundColor: AppThemeCombos.aqua,
-                child: Icon(Icons.add, color: AppThemeCombos.deepTeal),
+              bottom: 25,
+              child: SlideInUp(
+                duration: const Duration(milliseconds: 600),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFFCFFDFE), Color(0xFF9CDCB7)],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppThemeCombos.aqua.withOpacity(0.3),
+                        blurRadius: 15,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: FloatingActionButton(
+                    onPressed: () {},
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    child: const Icon(
+                      Icons.add,
+                      color: AppThemeCombos.deepTeal,
+                      size: 32,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModernNavItem(
+      int index, IconData icon, String label, MainScreenViewModel viewModel) {
+    bool isSelected = viewModel.currentIndex == index;
+    return GestureDetector(
+      onTap: () => viewModel.setIndex(index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? AppThemeCombos.aqua.withOpacity(0.2)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedScale(
+              scale: isSelected ? 1.1 : 1.0,
+              duration: const Duration(milliseconds: 200),
+              child: Icon(
+                icon,
+                color: isSelected
+                    ? AppThemeCombos.aqua
+                    : AppThemeCombos.softWhite.withOpacity(0.7),
+                size: 24,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected
+                    ? AppThemeCombos.aqua
+                    : AppThemeCombos.softWhite.withOpacity(0.7),
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
               ),
             ),
           ],

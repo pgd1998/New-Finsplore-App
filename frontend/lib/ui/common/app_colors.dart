@@ -26,3 +26,28 @@ const Color aqua = Color(0xFFCFFDFE);
 const Color skyBlue = Color(0xFFC5E6FF);
 const Color lavender = Color(0xFFE5DEFE);
 const Color mintGreen = Color(0xFF9CDCB7);
+
+/// Modern gradient colors for enhanced UI
+const LinearGradient primaryGradient = LinearGradient(
+  begin: Alignment.topLeft,
+  end: Alignment.bottomRight,
+  colors: [Color(0xFF094141), Color(0xFF008080)],
+);
+
+const LinearGradient cardGradient = LinearGradient(
+  begin: Alignment.topLeft,
+  end: Alignment.bottomRight,
+  colors: [Color(0xFFF8F8FF), Color(0xFFCFFDFE)],
+);
+
+const LinearGradient backgroundGradient = LinearGradient(
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
+  colors: [Color(0xFFF8F8FF), Color(0xFFE5DEFE)],
+);
+
+/// Status colors
+const Color successColor = Color(0xFF4CAF50);
+const Color warningColor = Color(0xFFFF9800);
+const Color errorColor = Color(0xFFF44336);
+const Color infoColor = Color(0xFF2196F3);

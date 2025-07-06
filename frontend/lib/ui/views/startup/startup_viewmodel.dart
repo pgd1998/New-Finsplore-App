@@ -15,9 +15,9 @@ class StartupViewModel extends BaseViewModel {
     await Future.delayed(Duration(seconds: 2));
 
     if (_authenticationService.isSignedIn) {
-      _navigationService.replaceWithMainScreenView();
+      _navigationService.replaceWith(Routes.mainScreenView);
     } else {
-      _navigationService.replaceWithSigninView();
+      _navigationService.replaceWith(Routes.signinView);
     }
   }
 }

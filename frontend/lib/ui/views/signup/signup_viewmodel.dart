@@ -45,7 +45,7 @@ class SignupViewModel extends BaseViewModel {
         // Clear the form
         _clearForm();
         // Navigate to main screen
-        _navigationService.replaceWithMainScreenView();
+        _navigationService.replaceWith(Routes.mainScreenView);
         setBusy(false);
         return true;
       } else {
@@ -68,7 +68,7 @@ class SignupViewModel extends BaseViewModel {
   }
 
   void navigateToSignIn() {
-    _navigationService.replaceWithSigninView();
+    _navigationService.replaceWith(Routes.signinView);
   }
 
   @override

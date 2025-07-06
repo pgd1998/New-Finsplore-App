@@ -11,7 +11,9 @@ Pager<T> _$PagerFromJson<T>(
   T Function(Object? json) fromJsonT,
 ) =>
     Pager<T>(
-      content: (json['content'] as List<dynamic>).map(fromJsonT).toList(),
+      content: (json['content'] as List<dynamic>)
+          .map(fromJsonT)
+          .toList(),
       page: (json['page'] as num).toInt(),
       size: (json['size'] as num).toInt(),
       totalElements: (json['totalElements'] as num).toInt(),
