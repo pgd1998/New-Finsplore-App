@@ -1,14 +1,32 @@
 import 'package:finsplore/model/result.dart';
+import 'package:finsplore/app/app.locator.dart';
+import 'package:finsplore/services/authentication_service.dart';
 import 'package:dio/dio.dart';
 
 /// API class for Basiq bank connection operations
 class BasiqApi {
   final Dio _dio = Dio();
+  final AuthenticationService _authService = locator<AuthenticationService>();
+
+  /// Get headers with JWT token for authenticated requests
+  Map<String, String> get _headers {
+    final token = _authService.token;
+    return {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
+
+  /// Check if user is authenticated
+  bool get _isAuthenticated => _authService.token != null;
 
   /// Creates a Basiq user for the current app user
   Future<Map<String, dynamic>?> createBasiqUser() async {
     try {
-      final response = await _dio.post('http://127.0.0.1:8080/api/basiq/create-user');
+      final response = await _dio.post(
+        'http://127.0.0.1:8080/api/basiq/create-user',
+        options: Options(headers: _headers),
+      );
       return response.data;
     } catch (e) {
       print('Error creating Basiq user: $e');
@@ -19,7 +37,10 @@ class BasiqApi {
   /// Generates an authentication link for bank connection
   Future<Map<String, dynamic>?> generateAuthLink() async {
     try {
-      final response = await _dio.post('http://127.0.0.1:8080/api/basiq/auth-link');
+      final response = await _dio.post(
+        'http://127.0.0.1:8080/api/basiq/auth-link',
+        options: Options(headers: _headers),
+      );
       return response.data;
     } catch (e) {
       print('Error generating auth link: $e');
@@ -30,7 +51,10 @@ class BasiqApi {
   /// Gets connected bank accounts for the user
   Future<Map<String, dynamic>?> getConnectedAccounts() async {
     try {
-      final response = await _dio.get('http://127.0.0.1:8080/api/basiq/accounts');
+      final response = await _dio.get(
+        'http://127.0.0.1:8080/api/basiq/accounts',
+        options: Options(headers: _headers),
+      );
       return response.data;
     } catch (e) {
       print('Error fetching accounts: $e');
@@ -41,7 +65,10 @@ class BasiqApi {
   /// Fetches transactions from connected bank accounts
   Future<Map<String, dynamic>?> fetchTransactions() async {
     try {
-      final response = await _dio.get('http://127.0.0.1:8080/api/basiq/transactions');
+      final response = await _dio.get(
+        'http://127.0.0.1:8080/api/basiq/transactions',
+        options: Options(headers: _headers),
+      );
       return response.data;
     } catch (e) {
       print('Error fetching transactions: $e');
@@ -52,7 +79,10 @@ class BasiqApi {
   /// Gets account balances from connected banks
   Future<Map<String, dynamic>?> getAccountBalances() async {
     try {
-      final response = await _dio.get('http://127.0.0.1:8080/api/basiq/balances');
+      final response = await _dio.get(
+        'http://127.0.0.1:8080/api/basiq/balances',
+        options: Options(headers: _headers),
+      );
       return response.data;
     } catch (e) {
       print('Error fetching balances: $e');
@@ -63,7 +93,10 @@ class BasiqApi {
   /// Refreshes data from connected bank accounts
   Future<Map<String, dynamic>?> refreshBankData() async {
     try {
-      final response = await _dio.post('http://127.0.0.1:8080/api/basiq/refresh');
+      final response = await _dio.post(
+        'http://127.0.0.1:8080/api/basiq/refresh',
+        options: Options(headers: _headers),
+      );
       return response.data;
     } catch (e) {
       print('Error refreshing bank data: $e');

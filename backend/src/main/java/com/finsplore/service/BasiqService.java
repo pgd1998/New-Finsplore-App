@@ -56,9 +56,9 @@ public class BasiqService {
                 .body(BodyInserters.fromFormData("scope", "SERVER_ACCESS"))
                 .retrieve()
                 .bodyToMono(BasiqTokenResponse.class);
-    
+
         BasiqTokenResponse tokenResponse = responseMono.block();
-    
+
         if (tokenResponse != null) {
             this.accessToken = tokenResponse.getAccessToken();
             this.tokenExpireTime = System.currentTimeMillis() + (60 * 60 * 1000); // 1 hour
@@ -86,6 +86,7 @@ public class BasiqService {
         Mono<BasiqUserResponse> responseMono = webClient.post()
                 .uri("/users")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .header("basiq-version", "3.0") // ← ADD THIS LINE
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(new BasiqUserRequest(email, mobile, firstName, lastName)))
                 .retrieve()
@@ -105,11 +106,10 @@ public class BasiqService {
      */
     public String createBasiqUser(com.finsplore.entity.User user) {
         return createUser(
-            user.getEmail(),
-            user.getMobileNumber() != null ? user.getMobileNumber() : "",
-            user.getFirstName() != null ? user.getFirstName() : "",
-            user.getLastName() != null ? user.getLastName() : ""
-        );
+                user.getEmail(),
+                user.getMobileNumber() != null ? user.getMobileNumber() : "",
+                user.getFirstName() != null ? user.getFirstName() : "",
+                user.getLastName() != null ? user.getLastName() : "");
     }
 
     /**
@@ -117,17 +117,18 @@ public class BasiqService {
      */
     public String generateAuthLink(String userId) {
         ensureAuthenticated();
-    
+
         Mono<BasiqAuthLinkResponse> responseMono = webClient.post()
                 .uri("/users/" + userId + "/auth_link")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .header("basiq-version", "3.0") // ← ADD THIS LINE
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(new BasiqAuthLinkRequest()))
                 .retrieve()
                 .bodyToMono(BasiqAuthLinkResponse.class);
-    
+
         BasiqAuthLinkResponse authLinkResponse = responseMono.block();
-    
+
         if (authLinkResponse != null && authLinkResponse.getLinks() != null) {
             String authLink = authLinkResponse.getLinks().getPublic();
             return authLink;
@@ -141,22 +142,22 @@ public class BasiqService {
      */
     public String fetchAllTransactions(String userId) {
         ensureAuthenticated();
-        
-        Mono<String> responseMono = webClient.get()
-        .uri(uriBuilder -> uriBuilder
-            .path("/users/" + userId + "/transactions")
-            .queryParam("limit", 500) // Add query parameter
-            .build())
-        .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE) // Add "accept" header
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken) // Add authorization header
-        .retrieve()
-        .bodyToMono(String.class); // Retrieve the response as a String
 
-        // Block to get the response synchronously (or handle it reactively)
+        Mono<String> responseMono = webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/users/" + userId + "/transactions")
+                        .queryParam("limit", 500)
+                        .build())
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .header("basiq-version", "3.0") // ← ADD THIS LINE
+                .retrieve()
+                .bodyToMono(String.class);
+
         String response = responseMono.block();
 
         if (response != null) {
-            return response; // Return the raw JSON response
+            return response;
         } else {
             throw new RuntimeException("Failed to fetch transactions for Basiq user");
         }
@@ -167,22 +168,22 @@ public class BasiqService {
      */
     public String fetchAccountBalance(String userId) {
         ensureAuthenticated();
-        
-        Mono<String> responseMono = webClient.get()
-        .uri(uriBuilder -> uriBuilder
-            .path("/users/" + userId + "/accounts")
-            .queryParam("limit", 500) // Add query parameter
-            .build())
-        .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE) // Add "accept" header
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken) // Add authorization header
-        .retrieve()
-        .bodyToMono(String.class); // Retrieve the response as a String
 
-        // Block to get the response synchronously (or handle it reactively)
+        Mono<String> responseMono = webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/users/" + userId + "/accounts")
+                        .queryParam("limit", 500)
+                        .build())
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .header("basiq-version", "3.0") // ← ADD THIS LINE
+                .retrieve()
+                .bodyToMono(String.class);
+
         String response = responseMono.block();
 
         if (response != null) {
-            return response; // Return the raw JSON response
+            return response;
         } else {
             throw new RuntimeException("Failed to fetch account balance for Basiq user");
         }

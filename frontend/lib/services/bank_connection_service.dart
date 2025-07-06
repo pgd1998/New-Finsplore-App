@@ -45,13 +45,20 @@ class BankConnectionService {
   /// Generate authentication link for bank connection
   Future<String?> generateBankConnectionLink() async {
     try {
+      print('Attempting to generate bank connection link...');
+      
       // First ensure user has a Basiq user account
-      await _basiqApi.createBasiqUser();
+      final userResult = await _basiqApi.createBasiqUser();
+      print('Create user result: $userResult');
       
       // Then generate auth link
-      final result = await _basiqApi.generateAuthLink();
-      if (result != null) {
-        return result['data']?['authLink'] as String?;
+      final authResult = await _basiqApi.generateAuthLink();
+      print('Auth link result: $authResult');
+      
+      if (authResult != null) {
+        final authLink = authResult['data']?['authLink'] as String?;
+        print('Generated auth link: $authLink');
+        return authLink;
       }
       return null;
     } catch (e) {
